@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { InterviewStatus } from '../types';
-import type { InterviewConfig, Message } from '../types';
-import SettingsForm from '../components/SettingsForm';
-import InterviewSession from '../components/InterviewSession';
-import FeedbackReport from '../components/FeedbackReport';
+import { InterviewStatus } from './types';
+import type { InterviewConfig, Message } from './types';
+import SettingsForm from './components/SettingsForm';
+import InterviewSession from './components/InterviewSession';
+import FeedbackReport from './components/FeedbackReport';
 import { Sparkles, MessageSquare } from 'lucide-react';
 
 const InterviewPage: React.FC = () => {

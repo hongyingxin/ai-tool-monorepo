@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout';
-import Home from './pages/Home';
-import InterviewPage from './pages/InterviewPage';
-import ChatPage from './pages/ChatPage';
-import SettingsPage from './pages/SettingsPage';
+import Layout from './shared/components/Layout';
+import Home from './modules/home/Home';
+import InterviewPage from './modules/interview/InterviewPage';
+import ChatPage from './modules/chat/ChatPage';
+import SettingsPage from './modules/settings/SettingsPage';
 
 const App: React.FC = () => {
   return (
