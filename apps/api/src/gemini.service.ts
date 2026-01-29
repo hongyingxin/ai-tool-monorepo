@@ -22,8 +22,8 @@ const EVALUATION_SYSTEM_PROMPT = `
 
 @Injectable()
 export class GeminiService implements OnModuleInit {
-  private genAI: GoogleGenerativeAI;
-  private model: any;
+  private genAI!: GoogleGenerativeAI;
+  private model!: any;
 
   constructor(private configService: ConfigService) {}
 
