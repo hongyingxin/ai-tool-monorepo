@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { GeminiService } from './gemini.service';
 import { GeminiController } from './gemini.controller';
 
@@ -11,7 +9,7 @@ import { GeminiController } from './gemini.controller';
       isGlobal: true,
     }),
   ],
-  controllers: [AppController, GeminiController],
-  providers: [AppService, GeminiService],
+  controllers: [GeminiController],
+  providers: [GeminiService],
 })
 export class AppModule {}
