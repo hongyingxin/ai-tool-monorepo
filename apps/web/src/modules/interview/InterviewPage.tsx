@@ -4,7 +4,7 @@ import type { InterviewConfig, Message } from './types';
 import SettingsForm from './components/SettingsForm';
 import InterviewSession from './components/InterviewSession';
 import FeedbackReport from './components/FeedbackReport';
-import { Sparkles, MessageSquare } from 'lucide-react';
+import { Sparkles, MessageSquare, ArrowRight, Cpu } from 'lucide-react';
 
 const InterviewPage: React.FC = () => {
   const [status, setStatus] = useState<InterviewStatus>(InterviewStatus.IDLE);
@@ -30,46 +30,52 @@ const InterviewPage: React.FC = () => {
   return (
     <div className="h-full">
       {status === InterviewStatus.IDLE && (
-        <div className="max-w-3xl mx-auto pt-12 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-600 text-sm font-bold mb-8">
-            <Sparkles size={16} />
-            <span>小智面试专家</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-6 leading-tight">
-            全方位的模拟面试 <br />
-            助力你斩获梦寐以求的 Offer
-          </h1>
-          <p className="text-gray-500 text-lg mb-12">
-            基于最新的大模型技术，针对 100+ 热门岗位提供沉浸式、专业化的面试体验。获取即时评估报告，快速查漏补缺。
-          </p>
-          
-          <div className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm flex flex-col md:flex-row items-center gap-8 text-left">
-            <div className="flex-1">
-              <h3 className="text-xl font-bold mb-4">准备好开始了吗？</h3>
-              <ul className="space-y-3 text-sm text-gray-500 mb-8">
-                <li className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-[10px] font-bold">✓</div>
-                  支持产品、开发、设计、市场等全行业岗位
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-[10px] font-bold">✓</div>
-                  支持英文面试和中文面试切换
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-[10px] font-bold">✓</div>
-                  实时复盘，多维深度反馈
-                </li>
-              </ul>
-              <button 
+        <div className="h-full flex flex-col items-center justify-center max-w-4xl mx-auto py-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <div className="w-full text-center space-y-8">
+            {/* Module Identifier */}
+            <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-mono font-bold tracking-[0.2em] uppercase">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+              Module: INTERVIEW_ENGINE_v1
+            </div>
+
+            <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-tight">
+              磨炼你的 <br />
+              <span className="text-blue-600">面试直觉</span>
+            </h1>
+
+            <p className="text-slate-400 font-medium text-lg max-w-xl mx-auto leading-relaxed">
+              在这里，没有评判，只有练习。通过与小智的深度模拟对话，<br className="hidden md:block" />
+              在真实挑战到来前，找回你最好的表达状态。
+            </p>
+
+            <div className="pt-12">
+              <button
                 onClick={() => setStatus(InterviewStatus.CONFIGURING)}
-                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-blue-200"
+                className="group relative px-12 py-5 bg-slate-900 text-white rounded-2xl font-bold overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-xl shadow-slate-200"
               >
-                配置面试场景
+                <span className="relative z-10 flex items-center gap-3 text-lg">
+                  初始化面试场景
+                  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </button>
             </div>
-            <div className="w-full md:w-64 aspect-square bg-slate-50 rounded-[1.5rem] flex items-center justify-center">
-              <MessageSquare size={80} className="text-blue-100" />
-            </div>
+
+            {/* Technical metadata footer */}
+            {/* <div className="pt-20 grid grid-cols-1 md:grid-cols-3 gap-8 text-left border-t border-slate-100 mt-20">
+              {[
+                { label: 'SUPPORT_ROLES', value: '全行业岗位覆盖', icon: <Cpu size={14} /> },
+                { label: 'LANGUAGE_ENGINE', value: '中英双语切换', icon: <MessageSquare size={14} /> },
+                { label: 'ANALYSIS_DEPTH', value: '多维深度评估', icon: <Sparkles size={14} /> }
+              ].map((stat, i) => (
+                <div key={i} className="space-y-2">
+                  <p className="text-[10px] font-mono font-bold text-slate-300 tracking-widest flex items-center gap-2">
+                    {stat.icon} {stat.label}
+                  </p>
+                  <p className="text-sm font-bold text-slate-600">{stat.value}</p>
+                </div>
+              ))}
+            </div> */}
           </div>
         </div>
       )}
