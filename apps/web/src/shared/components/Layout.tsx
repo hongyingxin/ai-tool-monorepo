@@ -26,7 +26,7 @@ const Layout: React.FC = () => {
             <Sparkles className="text-white" size={24} fill="currentColor" />
           </div>
           <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
-            AI Tool
+            小智 AI
           </span>
         </div>
 
@@ -68,7 +68,7 @@ const Layout: React.FC = () => {
                 <Sparkles size={18} className="text-white" fill="currentColor" />
              </div>
              <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">
-               智能 AI 助手控制台
+               小智 AI 助手控制台
              </h2>
           </div>
           <div className="flex items-center gap-3">

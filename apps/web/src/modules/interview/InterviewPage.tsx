@@ -33,7 +33,7 @@ const InterviewPage: React.FC = () => {
         <div className="max-w-3xl mx-auto pt-12 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-600 text-sm font-bold mb-8">
             <Sparkles size={16} />
-            <span>AI 模拟面试专家</span>
+            <span>小智面试专家</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-6 leading-tight">
             全方位的模拟面试 <br />

@@ -51,7 +51,7 @@ const Home: React.FC = () => {
         <div className="max-w-3xl">
           <div className="flex items-center gap-4 mb-10">
             <div className="px-4 py-1.5 rounded-full bg-white border border-blue-100 text-blue-600 text-[10px] font-black uppercase tracking-[0.2em] shadow-sm">
-              个人工作台
+              小智工作台
             </div>
             <div className="h-px w-12 bg-gray-200"></div>
             <span className="text-gray-400 text-sm font-semibold tracking-wide">
@@ -60,15 +60,12 @@ const Home: React.FC = () => {
           </div>
           
           <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-10 tracking-tight leading-[1.15]">
-            你好，<br />
-            今天想开启哪项 <span className="relative">
-              <span className="relative z-10 text-blue-600">AI 辅助？</span>
-              <span className="absolute bottom-2 left-0 w-full h-4 bg-blue-100/60 -z-0"></span>
-            </span>
+            你好，我是<span className="text-blue-600">小智</span><br />
+            今天想开启哪项 AI 辅助？
           </h1>
           
           <p className="text-gray-500 text-xl font-medium leading-[2] max-w-xl">
-            欢迎回到你的私人 AI 效率中心。在这里，你可以进行面试模拟、智能对话或通过 AI 深度优化你的工作流。
+            欢迎回到你的私人 AI 助手空间。在这里，你可以进行面试模拟、智能对话或通过 AI 深度优化你的工作流。
           </p>
         </div>
       </div>
