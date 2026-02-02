@@ -11,10 +11,14 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
+  // const initialized = useRef(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // if (initialized.current) return;
+    // initialized.current = true;
+
     const initInterview = async () => {
       try {
         const { text } = await api.startInterview(config);
@@ -45,7 +49,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
     setLoading(true);
 
     try {
-      const { text } = await api.sendMessage(messages, inputText);
+      const { text } = await api.sendMessage(currentMessages, inputText, config);
       const modelMsg: Message = { role: 'model', text, timestamp: Date.now() };
       setMessages(prev => [...prev, modelMsg]);
     } catch (error) {
