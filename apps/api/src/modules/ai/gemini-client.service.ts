@@ -18,11 +18,13 @@ export class GeminiClientService implements OnModuleInit {
 
   getModel(params: ModelParams, options?: RequestOptions): GenerativeModel {
     const baseUrl = this.configService.get<string>('GEMINI_BASE_URL');
+    const apiVersion = this.configService.get<string>('GEMINI_API_VERSION') || 'v1beta';
     
     return this.genAI.getGenerativeModel(
       params,
       {
         baseUrl: baseUrl || undefined,
+        apiVersion: options?.apiVersion || apiVersion,
         ...options,
       },
     );
