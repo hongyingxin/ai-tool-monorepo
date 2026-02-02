@@ -1,15 +1,17 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { GeminiService } from './gemini.service';
-import { GeminiController } from './gemini.controller';
+import { AiModule } from './modules/ai/ai.module';
+import { InterviewModule } from './modules/interview/interview.module';
+import { EvaluationModule } from './modules/evaluation/evaluation.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    AiModule,
+    InterviewModule,
+    EvaluationModule,
   ],
-  controllers: [GeminiController],
-  providers: [GeminiService],
 })
 export class AppModule {}
