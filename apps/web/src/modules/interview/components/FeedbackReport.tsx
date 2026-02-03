@@ -14,18 +14,16 @@ import { Loader2, RefreshCw } from 'lucide-react';
  */
 const FeedbackReport: React.FC = () => {
   const navigate = useNavigate();
-  const { config, messages: history, resetInterview } = useInterviewStore();
+  const { config, messages: history, resetInterview, feedback, setFeedback } = useInterviewStore();
   
-  // AI 生成的反馈数据
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
   // 加载状态
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!feedback);
   // 错误信息
   const [error, setError] = useState<string | null>(null);
   // SSE 流式传输时的原始文本预览
   const [rawStreamedText, setRawStreamedText] = useState('');
   // 记录是否已成功保存到本地数据库
-  const [isSaved, setIsSaved] = useState(false);
+  const [isSaved, setIsSaved] = useState(!!feedback);
 
   // 校验数据是否存在
   useEffect(() => {
@@ -35,7 +33,8 @@ const FeedbackReport: React.FC = () => {
   }, [config, history, navigate]);
 
   useEffect(() => {
-    if (!config || history.length === 0) return;
+    // 如果已经有报告了，不再重新请求
+    if (feedback || !config || history.length === 0) return;
 
     /**
      * 调用后端接口获取 AI 评估反馈
@@ -70,14 +69,14 @@ const FeedbackReport: React.FC = () => {
         }
       } catch (e) {
         console.error(e);
-        setError("无法生成评估报告，请检查网络或稍后重试。");
+        setError("无法生成评估报告，检查网络或稍后重试。");
       } finally {
         setLoading(false);
       }
     };
     
     fetchFeedback();
-  }, [history, config]);
+  }, [history, config, feedback, setFeedback]);
 
   const handleBackToHome = () => {
     resetInterview();

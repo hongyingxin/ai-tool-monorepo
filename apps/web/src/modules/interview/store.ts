@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { InterviewConfig, Message } from './types';
+import type { InterviewConfig, Message, Feedback } from './types';
 
 /**
  * 面试状态接口
@@ -10,6 +10,8 @@ interface InterviewState {
   config: InterviewConfig | null;
   /** 当前面试对话历史 */
   messages: Message[];
+  /** 当前生成的评估报告 (用于防止刷新重复生成) */
+  feedback: Feedback | null;
   /** 是否正在生成报告 */
   isGeneratingReport: boolean;
   
@@ -19,6 +21,8 @@ interface InterviewState {
   addMessage: (message: Message) => void;
   /** 设置完整消息列表 */
   setMessages: (messages: Message[]) => void;
+  /** 设置生成的报告 */
+  setFeedback: (feedback: Feedback | null) => void;
   /** 设置报告生成状态 */
   setGeneratingReport: (loading: boolean) => void;
   /** 重置面试状态（开启新面试时使用） */
@@ -35,6 +39,7 @@ export const useInterviewStore = create<InterviewState>()(
     (set) => ({
       config: null,
       messages: [],
+      feedback: null,
       isGeneratingReport: false,
 
       setConfig: (config) => set({ config }),
@@ -45,11 +50,14 @@ export const useInterviewStore = create<InterviewState>()(
 
       setMessages: (messages) => set({ messages }),
 
+      setFeedback: (feedback) => set({ feedback }),
+
       setGeneratingReport: (loading) => set({ isGeneratingReport: loading }),
 
       resetInterview: () => set({ 
         config: null, 
         messages: [], 
+        feedback: null,
         isGeneratingReport: false 
       }),
     }),
@@ -59,4 +67,3 @@ export const useInterviewStore = create<InterviewState>()(
     }
   )
 );
-

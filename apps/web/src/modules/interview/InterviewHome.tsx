@@ -4,10 +4,10 @@ import { useInterviewStore } from './store';
 import { ArrowRight, History } from 'lucide-react';
 
 /**
- * 面试主落地页组件
- * 仅负责展示欢迎信息和导航入口
+ * 面试模块首页
+ * 负责展示欢迎信息和核心功能入口
  */
-const InterviewLanding: React.FC = () => {
+const InterviewHome: React.FC = () => {
   const navigate = useNavigate();
   const resetInterview = useInterviewStore((state: any) => state.resetInterview);
 
@@ -59,4 +59,5 @@ const InterviewLanding: React.FC = () => {
   );
 };
 
-export default InterviewLanding;
+export default InterviewHome;
+
