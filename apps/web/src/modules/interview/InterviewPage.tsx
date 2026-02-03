@@ -7,7 +7,7 @@ import FeedbackReport from './components/FeedbackReport';
 import HistoryList from './components/HistoryList';
 import HistoryDetail from './components/HistoryDetail';
 import type { InterviewRecord } from './db';
-import { Sparkles, MessageSquare, ArrowRight, Cpu, History } from 'lucide-react';
+import { ArrowRight, History } from 'lucide-react';
 
 /**
  * 面试模块主页面组件
