@@ -1,23 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import type { Feedback, Message, InterviewConfig } from '../types';
+import { useNavigate } from 'react-router-dom';
+import type { Feedback } from '../types';
 import { api } from '../api';
 import { interviewDB } from '../db';
+import { useInterviewStore } from '../store';
 import EvaluationResults from './EvaluationResults';
-
-interface FeedbackReportProps {
-  /** 面试全程对话历史 */
-  history: Message[];
-  /** 面试配置信息 */
-  config: InterviewConfig;
-  /** 重启面试的回调函数 */
-  onRestart: () => void;
-}
+import { Loader2, RefreshCw } from 'lucide-react';
 
 /**
  * 面试结果报告页面组件
+ * 路由路径: /interview/result
  * 面试结束后的第一展示点。负责调用 AI 生成反馈，并将结果自动保存到本地。
  */
-const FeedbackReport: React.FC<FeedbackReportProps> = ({ history, config, onRestart }) => {
+const FeedbackReport: React.FC = () => {
+  const navigate = useNavigate();
+  const { config, messages: history, resetInterview } = useInterviewStore();
+  
   // AI 生成的反馈数据
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   // 加载状态
@@ -29,13 +27,24 @@ const FeedbackReport: React.FC<FeedbackReportProps> = ({ history, config, onRest
   // 记录是否已成功保存到本地数据库
   const [isSaved, setIsSaved] = useState(false);
 
+  // 校验数据是否存在
   useEffect(() => {
+    if (!config || history.length === 0) {
+      navigate('/interview');
+    }
+  }, [config, history, navigate]);
+
+  useEffect(() => {
+    if (!config || history.length === 0) return;
+
     /**
      * 调用后端接口获取 AI 评估反馈
      */
     const fetchFeedback = async () => {
       try {
         setLoading(true);
+        setError(null);
+        
         // 使用流式接口提升用户等待时的体验
         const resultText = await api.getFeedbackStream(history, config, (text) => {
           setRawStreamedText(text);
@@ -55,7 +64,6 @@ const FeedbackReport: React.FC<FeedbackReportProps> = ({ history, config, onRest
             feedback: parsedFeedback
           });
           setIsSaved(true);
-          console.log('Interview result saved to local storage.');
         } catch (parseError) {
           console.error("Failed to parse final feedback JSON:", resultText);
           setError("报告生成格式有误，请重试。");
@@ -67,28 +75,39 @@ const FeedbackReport: React.FC<FeedbackReportProps> = ({ history, config, onRest
         setLoading(false);
       }
     };
+    
     fetchFeedback();
   }, [history, config]);
 
-  // 加载中状态展示：显示动画及流式文本块预览
+  const handleBackToHome = () => {
+    resetInterview();
+    navigate('/interview');
+  };
+
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto p-12 bg-white rounded-3xl shadow-sm border border-gray-100">
-        <div className="text-center mb-8">
-          <div className="inline-block animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mb-6"></div>
-          <h2 className="text-2xl font-bold text-gray-800">正在进行面试复盘...</h2>
-          <p className="text-gray-500 mt-2">专家 AI 正在深度分析你的表现并生成报告</p>
+      <div className="max-w-4xl mx-auto p-12 bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 text-center space-y-8 animate-in fade-in zoom-in-95 duration-700">
+        <div className="relative inline-flex">
+          <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center">
+            <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+          </div>
+          <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-white animate-pulse"></div>
         </div>
         
-        {/* 流式文本预览区，让用户知道后台正在处理 */}
+        <div>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">正在进行面试复盘...</h2>
+          <p className="text-slate-400 mt-2 font-medium">专家 AI 正在深度分析你的表现并生成报告</p>
+        </div>
+        
+        {/* 流式文本预览区 */}
         {rawStreamedText && (
-          <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-100 font-mono text-xs text-slate-400 overflow-hidden">
-            <div className="flex items-center gap-2 mb-2 text-slate-500">
+          <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-100 font-mono text-xs text-slate-400 overflow-hidden text-left relative">
+            <div className="flex items-center gap-2 mb-3 text-slate-500 font-bold">
               <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
-              <span>正在生成数据块...</span>
+              <span>数据流实时预览</span>
             </div>
-            <div className="whitespace-pre-wrap break-all opacity-50">
-              {rawStreamedText.length > 500 ? '...' + rawStreamedText.slice(-500) : rawStreamedText}
+            <div className="whitespace-pre-wrap break-all opacity-50 line-clamp-4">
+              {rawStreamedText}
             </div>
           </div>
         )}
@@ -96,40 +115,50 @@ const FeedbackReport: React.FC<FeedbackReportProps> = ({ history, config, onRest
     );
   }
 
-  // 错误状态展示
-  if (error || !feedback) {
+  if (error || !feedback || !config) {
     return (
-      <div className="max-w-2xl mx-auto p-8 text-center">
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-4">{error}</div>
-        <button onClick={onRestart} className="text-blue-600 hover:underline">重新开始</button>
+      <div className="max-w-2xl mx-auto p-12 bg-white rounded-[2.5rem] border border-slate-100 text-center shadow-xl shadow-slate-200/50">
+        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <RefreshCw size={32} />
+        </div>
+        <h3 className="text-xl font-bold text-slate-900 mb-2">生成报告失败</h3>
+        <p className="text-slate-400 mb-8">{error || '出现未知错误'}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition-all active:scale-95"
+        >
+          重试生成
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* 引入评估结果展示组件 */}
+    <div className="max-w-4xl mx-auto space-y-12 pb-20 animate-in fade-in duration-700">
+      {/* 评估报告结果 */}
       <EvaluationResults feedback={feedback} config={config} />
       
-      {/* 成功保存提示标签 */}
+      {/* 成功保存提示 */}
       {isSaved && (
         <div className="flex justify-center">
-          <div className="inline-flex bg-green-50 text-green-700 px-4 py-2 rounded-full text-xs font-bold border border-green-100 items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            已自动存入本地历史记录
+          <div className="inline-flex bg-emerald-50 text-emerald-700 px-6 py-3 rounded-2xl text-xs font-black border border-emerald-100 items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="w-5 h-5 bg-emerald-500 rounded-lg flex items-center justify-center text-white">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            已自动存入本地历史记录，可随时查看
           </div>
         </div>
       )}
 
       {/* 底部按钮区域 */}
-      <div className="flex justify-center pt-4 pb-12">
+      <div className="flex justify-center pt-4">
         <button
-          onClick={onRestart}
-          className="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-black transition-all shadow-lg"
+          onClick={handleBackToHome}
+          className="group px-12 py-5 bg-slate-900 text-white rounded-[1.5rem] font-black hover:bg-blue-600 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-slate-200"
         >
-          返回首页
+          返回欢迎页
         </button>
       </div>
     </div>

@@ -24,8 +24,19 @@ const Layout: React.FC = () => {
 
   // 简单的路由标题映射
   const getPageTitle = () => {
+    // 优先匹配精确路由
     const item = navItems.find(item => item.to === location.pathname);
-    return item ? item.label : '返回';
+    if (item) return item.label;
+
+    // 处理嵌套路由标题
+    if (location.pathname.startsWith('/interview/history/')) return '面试详情';
+    if (location.pathname === '/interview/history') return '面试历史';
+    if (location.pathname === '/interview/setup') return '定制面试场景';
+    if (location.pathname === '/interview/session') return '面试进行中';
+    if (location.pathname === '/interview/result') return '评估报告';
+    if (location.pathname.startsWith('/interview')) return '模拟面试';
+    
+    return '返回';
   };
 
   return (

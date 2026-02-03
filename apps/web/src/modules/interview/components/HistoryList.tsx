@@ -1,19 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { interviewDB, type InterviewRecord } from '../db';
-import { History, ArrowLeft, Calendar, Briefcase, ChevronRight, Trash2 } from 'lucide-react';
-
-interface HistoryListProps {
-  /** 选择某条记录查看详情的回调 */
-  onSelect: (record: InterviewRecord) => void;
-  /** 返回上一页的回调 */
-  onBack: () => void;
-}
+import { History, Calendar, Briefcase, ChevronRight, Trash2 } from 'lucide-react';
 
 /**
  * 面试历史记录列表组件
  * 展示用户过去完成的所有面试练习，支持查看详情和删除
  */
-const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack }) => {
+const HistoryList: React.FC = () => {
+  const navigate = useNavigate();
   const [records, setRecords] = useState<InterviewRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,35 +41,18 @@ const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack }) => {
     }
   };
 
-  return (
-    <div className="max-w-4xl mx-auto py-8 px-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* 头部导航 */}
-      <div className="flex items-center justify-between mb-10">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onBack}
-            className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
-          >
-            <ArrowLeft size={24} />
-          </button>
-          <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                <History className="text-blue-600" size={18} />
-              </div>
-              面试历史
-            </h2>
-            <p className="text-slate-400 text-sm mt-1 font-medium">回顾您的每一次进步</p>
-          </div>
-        </div>
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="w-10 h-10 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+        <p className="font-medium">正在加载历史记录...</p>
       </div>
+    );
+  }
 
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-          <div className="w-10 h-10 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-          <p className="font-medium">正在加载历史记录...</p>
-        </div>
-      ) : records.length === 0 ? (
+  return (
+    <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {records.length === 0 ? (
         <div className="bg-white rounded-[2.5rem] border-2 border-dashed border-slate-100 p-20 text-center">
           <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <History className="text-slate-200" size={32} />
@@ -82,7 +60,7 @@ const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack }) => {
           <h3 className="text-xl font-bold text-slate-900 mb-2">暂无面试记录</h3>
           <p className="text-slate-400 mb-8">您还没有完成过模拟面试，快去开启您的第一场挑战吧！</p>
           <button
-            onClick={onBack}
+            onClick={() => navigate('/interview')}
             className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
           >
             开启新面试
@@ -93,7 +71,7 @@ const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack }) => {
           {records.map((record) => (
             <div
               key={record.id}
-              onClick={() => onSelect(record)}
+              onClick={() => navigate(`/interview/history/${record.id}`)}
               className="group bg-white rounded-3xl border border-slate-100 p-6 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all cursor-pointer relative"
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
