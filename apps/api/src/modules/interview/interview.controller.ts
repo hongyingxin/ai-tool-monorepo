@@ -1,6 +1,7 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Sse } from '@nestjs/common';
 import { InterviewService } from './interview.service';
 import { InterviewConfig, Message } from '../../types';
+import { Observable } from 'rxjs';
 
 @Controller('ai')
 export class InterviewController {
@@ -40,7 +41,23 @@ export class InterviewController {
   }
 
   /**
-   * 获取面试反馈报告
+   * 获取面试反馈报告 (SSE 流式)
+   * @param body 包含对话历史和面试配置的对象
+   * @returns Observable 流
+   */
+  @Post('feedback/stream')
+  @Sse()
+  getFeedbackStream(
+    @Body() body: { history: Message[]; config: InterviewConfig },
+  ): Observable<MessageEvent> {
+    return this.interviewService.getFeedbackStream(
+      body.history,
+      body.config,
+    );
+  }
+
+  /**
+   * 获取面试反馈报告 (旧接口，保留兼容)
    * @param body 包含对话历史和面试配置的对象
    * @returns 包含评分、优点、不足和建议的反馈报告
    */

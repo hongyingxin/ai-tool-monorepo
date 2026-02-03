@@ -3,6 +3,7 @@ import { SchemaType } from '@google/generative-ai';
 import { GeminiClientService } from '../ai/gemini-client.service';
 import { InterviewConfig, Message, Feedback } from '../../types';
 import { INTERVIEW_SYSTEM_PROMPT, EVALUATION_SYSTEM_PROMPT } from './prompts';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class InterviewService {
@@ -28,6 +29,18 @@ export class InterviewService {
           role: 'system',
           parts: [{ text: systemInstruction }],
         },
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: SchemaType.OBJECT,
+            properties: {
+              content: { type: SchemaType.STRING, description: '面试官说的话或题目内容' },
+              type: { type: SchemaType.STRING, enum: ['text', 'choice'], description: '题目类型' },
+              options: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING }, description: '选择题选项，主观题为空' },
+            },
+            required: ['content', 'type'],
+          },
+        },
       }
     );
   }
@@ -39,6 +52,7 @@ export class InterviewService {
     const result = await model.generateContent('你好，请开始我的模拟面试。');
     const text = result.response.text();
     console.log('[InterviewService] First question generated:', text);
+    // 兼容前端：返回 JSON 字符串，前端负责解析
     return text;
   }
 
@@ -72,6 +86,51 @@ export class InterviewService {
     return text;
   }
 
+  getFeedbackStream(
+    history: Message[],
+    config: InterviewConfig,
+  ): Observable<MessageEvent> {
+    const historyText = history
+      .map((m) => `${m.role === 'user' ? '候选人' : '面试官'}: ${m.text}`)
+      .join('\n');
+
+    const evaluationModel = this.geminiClient.getModel(
+      {
+        model: 'gemini-2.5-pro',
+        systemInstruction: {
+          role: 'system',
+          parts: [{ text: EVALUATION_SYSTEM_PROMPT }],
+        },
+        generationConfig: {
+          responseMimeType: 'application/json',
+        },
+      }
+    );
+
+    const prompt = `
+请评估以下面试记录：
+面试背景：${config.jobTitle} at ${config.company} (${config.experienceLevel})
+对话历史：
+${historyText}
+`;
+
+    return new Observable((subscriber) => {
+      (async () => {
+        try {
+          const result = await evaluationModel.generateContentStream(prompt);
+          
+          for await (const chunk of result.stream) {
+            const chunkText = chunk.text();
+            subscriber.next({ data: { text: chunkText } } as MessageEvent);
+          }
+          subscriber.complete();
+        } catch (error) {
+          subscriber.error(error);
+        }
+      })();
+    });
+  }
+
   async getFeedback(
     history: Message[],
     config: InterviewConfig,
@@ -83,7 +142,7 @@ export class InterviewService {
 
     const evaluationModel = this.geminiClient.getModel(
       {
-        model: 'gemini-2.5-pro',
+        model: 'gemini-2.5-flash',
         systemInstruction: {
           role: 'system',
           parts: [{ text: EVALUATION_SYSTEM_PROMPT }],

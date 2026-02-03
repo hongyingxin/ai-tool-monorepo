@@ -17,6 +17,14 @@ export interface Message {
   role: 'user' | 'model';
   text: string;
   timestamp: number;
+  type?: 'text' | 'choice';
+  options?: string[];
+}
+
+export interface InterviewResponse {
+  content: string;
+  type: 'text' | 'choice';
+  options?: string[];
 }
 
 export interface Feedback {

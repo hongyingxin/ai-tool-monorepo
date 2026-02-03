@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import type { Message, InterviewConfig } from '../types';
+import type { Message, InterviewConfig, InterviewResponse } from '../types';
 import { api } from '../api';
 
 interface InterviewSessionProps {
@@ -11,18 +11,81 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
-  // const initialized = useRef(false);
+  const [isRecording, setIsRecording] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // 初始化语音识别
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      // @ts-ignore
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'zh-CN';
+
+      recognitionRef.current.onresult = (event: any) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        if (finalTranscript) {
+          setInputText(prev => prev + finalTranscript);
+        }
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        setIsRecording(false);
+      };
+      
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+      };
+    }
+  }, []);
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+    } else {
+      recognitionRef.current?.start();
+      setIsRecording(true);
+    }
+  };
+
+  // 解析后端返回的 JSON 消息
+  const parseResponse = (text: string): Message => {
+    try {
+      // 尝试解析 JSON
+      const data: InterviewResponse = JSON.parse(text);
+      return {
+        role: 'model',
+        text: data.content,
+        type: data.type,
+        options: data.options,
+        timestamp: Date.now()
+      };
+    } catch (e) {
+      // 如果不是 JSON，作为普通文本处理（兼容旧数据）
+      return {
+        role: 'model',
+        text: text,
+        timestamp: Date.now()
+      };
+    }
+  };
 
   useEffect(() => {
-    // if (initialized.current) return;
-    // initialized.current = true;
-
     const initInterview = async () => {
       try {
         const { text } = await api.startInterview(config);
-        setMessages([{ role: 'model', text, timestamp: Date.now() }]);
+        const msg = parseResponse(text);
+        setMessages([msg]);
       } catch (error) {
         console.error("Failed to start interview", error);
         setMessages([{ role: 'model', text: "系统繁忙，请稍后再试。", timestamp: Date.now() }]);
@@ -39,18 +102,19 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
     }
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!inputText.trim() || loading) return;
+  const handleSend = async (textOverride?: string) => {
+    const textToSend = textOverride || inputText;
+    if (!textToSend.trim() || loading) return;
 
-    const userMsg: Message = { role: 'user', text: inputText, timestamp: Date.now() };
-    const currentMessages = [...messages, userMsg];
-    setMessages(currentMessages);
+    const userMsg: Message = { role: 'user', text: textToSend, timestamp: Date.now() };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     setInputText('');
     setLoading(true);
 
     try {
-      const { text } = await api.sendMessage(currentMessages, inputText, config);
-      const modelMsg: Message = { role: 'model', text, timestamp: Date.now() };
+      const { text } = await api.sendMessage(newMessages, textToSend, config);
+      const modelMsg = parseResponse(text);
       setMessages(prev => [...prev, modelMsg]);
     } catch (error) {
       console.error("Message error", error);
@@ -90,13 +154,34 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
         className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50"
       >
         {messages.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
             <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${
               msg.role === 'user' 
                 ? 'bg-blue-600 text-white rounded-tr-none' 
                 : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none'
             }`}>
               <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+              
+              {/* 选择题选项渲染 */}
+              {msg.type === 'choice' && msg.options && (
+                <div className="mt-4 space-y-2">
+                  {msg.options.map((option, optIdx) => (
+                    <button
+                      key={optIdx}
+                      onClick={() => !loading && handleSend(option)} // 点击即发送
+                      disabled={loading || idx !== messages.length - 1} // 只能回答最后一题
+                      className={`w-full text-left p-3 rounded-lg border transition-all ${
+                        loading || idx !== messages.length - 1
+                          ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-white border-blue-100 hover:border-blue-400 hover:bg-blue-50 text-gray-700'
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <span className={`text-[10px] mt-2 block opacity-60 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
                 {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
@@ -116,7 +201,22 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
 
       {/* Input */}
       <div className="p-4 bg-white border-t border-gray-100">
-        <div className="relative flex items-center">
+        <div className="relative flex items-center gap-2">
+          {/* 语音输入按钮 */}
+          <button
+            onClick={toggleRecording}
+            className={`p-3 rounded-full transition-all ${
+              isRecording 
+                ? 'bg-red-100 text-red-600 animate-pulse' 
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+            }`}
+            title={isRecording ? "点击停止录音" : "点击开始录音"}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+          </button>
+
           <textarea
             rows={1}
             value={inputText}
@@ -127,18 +227,18 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
                 handleSend();
               }
             }}
-            placeholder="输入你的回答..."
-            className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:bg-white focus:border-blue-500 rounded-xl outline-none resize-none pr-12 transition-all"
+            placeholder={isRecording ? "正在听..." : "输入你的回答..."}
+            className="flex-1 px-4 py-3 bg-gray-50 border border-transparent focus:bg-white focus:border-blue-500 rounded-xl outline-none resize-none transition-all"
           />
           <button
-            onClick={handleSend}
+            onClick={() => handleSend()}
             disabled={loading || !inputText.trim()}
-            className={`absolute right-2 p-2 rounded-lg transition-colors ${
-              loading || !inputText.trim() ? 'text-gray-400' : 'text-blue-600 hover:bg-blue-50'
+            className={`p-3 rounded-lg transition-colors ${
+              loading || !inputText.trim() ? 'text-gray-400 bg-gray-100' : 'text-white bg-blue-600 hover:bg-blue-700'
             }`}
           >
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>
         </div>
