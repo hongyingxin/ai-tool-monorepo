@@ -1,120 +1,152 @@
-import React, { useEffect, useState } from 'react';
-import { interviewDB } from '../db';
-import type { InterviewRecord } from '../db';
-import { Clock, Calendar, ChevronRight, Trash2, Award } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import type { InterviewConfig } from '../types';
+import { JOB_CATEGORIES } from '../constants/jobs';
+import { Briefcase, Building2, GraduationCap, Target, MessageSquarePlus, ChevronRight } from 'lucide-react';
 
-interface HistoryListProps {
-  onSelect: (record: InterviewRecord) => void;
-  onBack: () => void;
+interface SettingsFormProps {
+  /** 提交配置并开始面试的回调 */
+  onStart: (config: InterviewConfig) => void;
 }
 
-const HistoryList: React.FC<HistoryListProps> = ({ onSelect, onBack }) => {
-  const [records, setRecords] = useState<InterviewRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+/**
+ * 面试设置表单组件
+ * 用于在面试开始前，让用户填写应聘职位、公司和经验水平等背景信息
+ */
+const SettingsForm: React.FC<SettingsFormProps> = ({ onStart }) => {
+  // 当前选择的职位大类 (对应 JOB_CATEGORIES[i].label)
+  const [category, setCategory] = useState(JOB_CATEGORIES[1].label); // 默认 前端/移动
+  // 面试配置状态
+  const [config, setConfig] = useState<InterviewConfig>({
+    jobTitle: JOB_CATEGORIES[1].options[0],
+    company: '',
+    experienceLevel: '中级 (3-5年)',
+    interviewType: 'technical',
+    customDescription: ''
+  });
 
-  useEffect(() => {
-    loadRecords();
-  }, []);
+  // 根据当前选择的大类，计算小类列表
+  const selectedCategory = useMemo(() => 
+    JOB_CATEGORIES.find(c => c.label === category), 
+  [category]);
 
-  const loadRecords = async () => {
-    setLoading(true);
-    const data = await interviewDB.getAllInterviews();
-    setRecords(data);
-    setLoading(false);
+  /**
+   * 提交表单
+   */
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onStart(config);
   };
-
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    if (confirm('确定要删除这条面试记录吗？')) {
-      await interviewDB.deleteInterview(id);
-      await loadRecords();
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">面试历史</h2>
-          <p className="text-slate-500 text-sm mt-1">保存于本地浏览器的面试记录</p>
-        </div>
-        <button
-          onClick={onBack}
-          className="text-slate-500 hover:text-slate-900 font-medium text-sm transition"
-        >
-          返回首页
-        </button>
-      </div>
-
-      {records.length === 0 ? (
-        <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-          <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Clock className="text-slate-400" size={32} />
-          </div>
-          <p className="text-slate-500 font-medium">暂无面试记录</p>
-          <button
-            onClick={onBack}
-            className="mt-4 text-blue-600 font-bold hover:underline"
-          >
-            去开始一场面试
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {records.map((record) => (
-            <div
-              key={record.id}
-              onClick={() => onSelect(record)}
-              className="group bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-200 transition-all cursor-pointer flex items-center gap-4"
-            >
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex flex-col items-center justify-center text-blue-600 shrink-0">
-                <span className="text-xs font-bold leading-none">{record.feedback.score}</span>
-                <span className="text-[8px] uppercase font-black opacity-50 mt-1">Score</span>
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-bold text-slate-900 truncate">{record.config.jobTitle}</h4>
-                  <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] rounded font-bold uppercase">
-                    {record.config.company}
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 text-slate-400 text-xs">
-                  <span className="flex items-center gap-1">
-                    <Calendar size={12} />
-                    {new Date(record.createdAt).toLocaleDateString()}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Award size={12} />
-                    {record.history.length} 轮对话
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={(e) => handleDelete(e, record.id)}
-                  className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                >
-                  <Trash2 size={18} />
-                </button>
-                <ChevronRight className="text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" size={20} />
-              </div>
+    <form onSubmit={handleSubmit} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 md:p-12 shadow-sm">
+        {/* 表单头部 */}
+        <div className="mb-10">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+              <Target className="text-blue-600" size={18} />
             </div>
-          ))}
+            定制面试场景
+          </h2>
+          <p className="text-slate-400 text-sm mt-2 font-medium">请填写您的面试目标，小智将为您生成最匹配的题目</p>
         </div>
-      )}
-    </div>
+
+        <div className="space-y-8">
+          {/* 1. 职位选择 - 二级联动菜单 */}
+          <section className="space-y-4">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+              <Briefcase size={12} /> 应聘职位 (二级分类)
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 大类选择 */}
+              <select
+                value={category}
+                onChange={e => {
+                  const newCat = e.target.value;
+                  setCategory(newCat);
+                  const firstJob = JOB_CATEGORIES.find(c => c.label === newCat)?.options[0] || '';
+                  setConfig({ ...config, jobTitle: firstJob });
+                }}
+                className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 appearance-none cursor-pointer"
+              >
+                {JOB_CATEGORIES.map(c => (
+                  <option key={c.label} value={c.label}>{c.label}</option>
+                ))}
+              </select>
+              {/* 具体职位选择 */}
+              <select
+                value={config.jobTitle}
+                onChange={e => setConfig({ ...config, jobTitle: e.target.value })}
+                className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 appearance-none cursor-pointer"
+              >
+                {selectedCategory?.options.map(job => (
+                  <option key={job} value={job}>{job}</option>
+                ))}
+              </select>
+            </div>
+          </section>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* 2. 目标公司输入 */}
+            <section className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                <Building2 size={12} /> 目标公司 (可选)
+              </label>
+              <input
+                type="text"
+                value={config.company}
+                onChange={e => setConfig({ ...config, company: e.target.value })}
+                className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300"
+                placeholder="例如：字节跳动"
+              />
+            </section>
+
+            {/* 3. 经验水平选择 */}
+            <section className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                <GraduationCap size={12} /> 经验水平
+              </label>
+              <select
+                value={config.experienceLevel}
+                onChange={e => setConfig({ ...config, experienceLevel: e.target.value })}
+                className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 appearance-none cursor-pointer"
+              >
+                <option>应届生/实习生</option>
+                <option>初级 (1-2年)</option>
+                <option>中级 (3-5年)</option>
+                <option>高级 (5年以上)</option>
+                <option>专家/架构师</option>
+              </select>
+            </section>
+          </div>
+
+          {/* 4. 补充说明 (用于增强 Prompt) */}
+          <section className="space-y-4">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+              <MessageSquarePlus size={12} /> 补充信息 (Prompt 加强)
+            </label>
+            <textarea
+              value={config.customDescription}
+              onChange={e => setConfig({ ...config, customDescription: e.target.value })}
+              className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 h-32 placeholder:text-slate-300"
+              placeholder="例如：希望重点考察分布式系统设计能力..."
+            />
+          </section>
+
+          {/* 提交按钮 */}
+          <div className="pt-6">
+            <button
+              type="submit"
+              className="w-full bg-slate-900 hover:bg-blue-600 text-white font-black py-5 rounded-[1.5rem] shadow-xl shadow-slate-200 transition-all flex items-center justify-center gap-3 group"
+            >
+              初始化面试会话
+              <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
   );
 };
 
-export default HistoryList;
-
+export default SettingsForm;

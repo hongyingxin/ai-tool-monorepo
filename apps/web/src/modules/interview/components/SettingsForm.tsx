@@ -4,11 +4,18 @@ import { JOB_CATEGORIES } from '../constants/jobs';
 import { Briefcase, Building2, GraduationCap, Target, MessageSquarePlus, ChevronRight } from 'lucide-react';
 
 interface SettingsFormProps {
+  /** 提交配置并开始面试的回调 */
   onStart: (config: InterviewConfig) => void;
 }
 
+/**
+ * 面试设置表单组件
+ * 用于在面试开始前，让用户填写应聘职位、公司和经验水平等背景信息
+ */
 const SettingsForm: React.FC<SettingsFormProps> = ({ onStart }) => {
+  // 当前选择的职位大类 (对应 JOB_CATEGORIES[i].label)
   const [category, setCategory] = useState(JOB_CATEGORIES[1].label); // 默认 前端/移动
+  // 面试配置状态
   const [config, setConfig] = useState<InterviewConfig>({
     jobTitle: JOB_CATEGORIES[1].options[0],
     company: '',
@@ -17,10 +24,14 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onStart }) => {
     customDescription: ''
   });
 
+  // 根据当前选择的大类，计算小类列表
   const selectedCategory = useMemo(() => 
     JOB_CATEGORIES.find(c => c.label === category), 
   [category]);
 
+  /**
+   * 提交表单
+   */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onStart(config);
@@ -29,6 +40,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onStart }) => {
   return (
     <form onSubmit={handleSubmit} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 md:p-12 shadow-sm">
+        {/* 表单头部 */}
         <div className="mb-10">
           <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
             <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
@@ -40,12 +52,13 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onStart }) => {
         </div>
 
         <div className="space-y-8">
-          {/* 1. 职位选择 - 二级联动 */}
+          {/* 1. 职位选择 - 二级联动菜单 */}
           <section className="space-y-4">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
               <Briefcase size={12} /> 应聘职位 (二级分类)
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 大类选择 */}
               <select
                 value={category}
                 onChange={e => {
@@ -60,6 +73,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onStart }) => {
                   <option key={c.label} value={c.label}>{c.label}</option>
                 ))}
               </select>
+              {/* 具体职位选择 */}
               <select
                 value={config.jobTitle}
                 onChange={e => setConfig({ ...config, jobTitle: e.target.value })}
@@ -73,7 +87,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onStart }) => {
           </section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* 2. 目标公司 */}
+            {/* 2. 目标公司输入 */}
             <section className="space-y-4">
               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
                 <Building2 size={12} /> 目标公司 (可选)
@@ -87,7 +101,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onStart }) => {
               />
             </section>
 
-            {/* 3. 经验水平 */}
+            {/* 3. 经验水平选择 */}
             <section className="space-y-4">
               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
                 <GraduationCap size={12} /> 经验水平
@@ -106,7 +120,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onStart }) => {
             </section>
           </div>
 
-          {/* 4. 其他需求 */}
+          {/* 4. 补充说明 (用于增强 Prompt) */}
           <section className="space-y-4">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
               <MessageSquarePlus size={12} /> 补充信息 (Prompt 加强)
@@ -119,6 +133,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onStart }) => {
             />
           </section>
 
+          {/* 提交按钮 */}
           <div className="pt-6">
             <button
               type="submit"
@@ -135,4 +150,3 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ onStart }) => {
 };
 
 export default SettingsForm;
-

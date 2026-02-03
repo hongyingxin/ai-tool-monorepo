@@ -2,14 +2,21 @@ import React from 'react';
 import type { Feedback, InterviewConfig } from '../types';
 
 interface EvaluationResultsProps {
+  /** AI 生成的评估反馈数据 */
   feedback: Feedback;
+  /** 当时的面试配置信息 */
   config: InterviewConfig;
 }
 
+/**
+ * 面试评估结果展示组件
+ * 纯展示组件，负责渲染得分、亮点、待改进项、建议和总结
+ * 在结果报告页和历史详情页中复用
+ */
 const EvaluationResults: React.FC<EvaluationResultsProps> = ({ feedback, config }) => {
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Hero Section */}
+      {/* 顶部得分区域 */}
       <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="flex-1 text-center md:text-left">
           <h2 className="text-3xl font-bold mb-2">面试评估报告</h2>
@@ -19,6 +26,7 @@ const EvaluationResults: React.FC<EvaluationResultsProps> = ({ feedback, config 
             <span className="text-xs font-bold bg-green-400 text-green-900 px-2 py-0.5 rounded-full">已完成</span>
           </div>
         </div>
+        {/* 圆形进度条展示分数 */}
         <div className="relative">
           <svg className="w-32 h-32 transform -rotate-90">
             <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/20" />
@@ -26,7 +34,7 @@ const EvaluationResults: React.FC<EvaluationResultsProps> = ({ feedback, config 
               cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" 
               strokeDasharray={364} 
               strokeDashoffset={364 - (364 * feedback.score) / 100}
-              className="text-white"
+              className="text-white transition-all duration-1000 ease-out"
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center flex-col">
@@ -36,8 +44,9 @@ const EvaluationResults: React.FC<EvaluationResultsProps> = ({ feedback, config 
         </div>
       </div>
 
-      {/* Details Grid */}
+      {/* 亮点与不足双栏展示 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 亮点展示 */}
         <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-4 text-emerald-600">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,6 +64,7 @@ const EvaluationResults: React.FC<EvaluationResultsProps> = ({ feedback, config 
           </ul>
         </section>
 
+        {/* 待改进项展示 */}
         <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-4 text-orange-600">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,7 +83,7 @@ const EvaluationResults: React.FC<EvaluationResultsProps> = ({ feedback, config 
         </section>
       </div>
 
-      {/* Improvement Suggestions */}
+      {/* 提升建议区域 */}
       <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-4 text-blue-600">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,7 +100,7 @@ const EvaluationResults: React.FC<EvaluationResultsProps> = ({ feedback, config 
         </div>
       </section>
 
-      {/* Summary */}
+      {/* 专家点评总结 */}
       <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <h3 className="font-bold text-gray-800 mb-4">综合点评</h3>
         <p className="text-gray-600 leading-relaxed text-sm">{feedback.overallSummary}</p>
@@ -100,4 +110,3 @@ const EvaluationResults: React.FC<EvaluationResultsProps> = ({ feedback, config 
 };
 
 export default EvaluationResults;
-

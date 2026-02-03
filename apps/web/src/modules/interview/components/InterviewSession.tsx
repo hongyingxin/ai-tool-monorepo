@@ -3,20 +3,30 @@ import type { Message, InterviewConfig, InterviewResponse } from '../types';
 import { api } from '../api';
 
 interface InterviewSessionProps {
+  /** 面试配置信息 */
   config: InterviewConfig;
+  /** 面试结束（用户主动点击）时的回调，返回完整的对话历史 */
   onFinish: (history: Message[]) => void;
 }
 
+/**
+ * 面试会话核心组件
+ * 负责实时对话、语音识别、消息发送以及与后端的 Chat 接口对接
+ */
 const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish }) => {
+  // 对话记录列表
   const [messages, setMessages] = useState<Message[]>([]);
+  // 当前输入框的文本
   const [inputText, setInputText] = useState('');
+  // 接口请求中的加载状态
   const [loading, setLoading] = useState(true);
+  // 是否正在录音
   const [isRecording, setIsRecording] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
-  // 初始化语音识别
+  // 初始化语音识别 (Web Speech API)
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       // @ts-ignore
@@ -49,6 +59,9 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
     }
   }, []);
 
+  /**
+   * 切换录音状态
+   */
   const toggleRecording = () => {
     if (isRecording) {
       recognitionRef.current?.stop();
@@ -58,10 +71,12 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
     }
   };
 
-  // 解析后端返回的 JSON 消息
+  /**
+   * 解析后端返回的包含 JSON 的响应
+   * 后端返回格式参考 InterviewResponse 接口
+   */
   const parseResponse = (text: string): Message => {
     try {
-      // 尝试解析 JSON
       const data: InterviewResponse = JSON.parse(text);
       return {
         role: 'model',
@@ -71,7 +86,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
         timestamp: Date.now()
       };
     } catch (e) {
-      // 如果不是 JSON，作为普通文本处理（兼容旧数据）
+      // 容错处理：如果非标准 JSON，按普通文本展示
       return {
         role: 'model',
         text: text,
@@ -80,6 +95,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
     }
   };
 
+  // 组件加载时自动初始化面试，获取第一句开场白
   useEffect(() => {
     const initInterview = async () => {
       try {
@@ -88,7 +104,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
         setMessages([msg]);
       } catch (error) {
         console.error("Failed to start interview", error);
-        setMessages([{ role: 'model', text: "系统繁忙，请稍后再试。", timestamp: Date.now() }]);
+        setMessages([{ role: 'model', text: "系统繁忙，请稍后再试。", timestamp: Date.now(), isError: true }]);
       } finally {
         setLoading(false);
       }
@@ -96,12 +112,17 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
     initInterview();
   }, [config]);
 
+  // 消息更新后自动滚动到底部
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
+  /**
+   * 发送用户消息
+   * @param textOverride 可选的覆盖文本（用于点击选择题选项时）
+   */
   const handleSend = async (textOverride?: string) => {
     const textToSend = textOverride || inputText;
     if (!textToSend.trim() || loading) return;
@@ -118,6 +139,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
       setMessages(prev => [...prev, modelMsg]);
     } catch (error) {
       console.error("Message error", error);
+      setMessages(prev => [...prev, { role: 'model', text: "消息发送失败，请重试。", timestamp: Date.now(), isError: true }]);
     } finally {
       setLoading(false);
     }
@@ -125,11 +147,11 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
 
   return (
     <div className="flex flex-col h-[calc(100vh-200px)] max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-      {/* Header */}
+      {/* 顶部标题栏 */}
       <div className="bg-gray-50 border-b border-gray-100 p-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
@@ -148,7 +170,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
         </button>
       </div>
 
-      {/* Messages */}
+      {/* 对话消息滚动区 */}
       <div 
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50"
@@ -158,18 +180,18 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
             <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${
               msg.role === 'user' 
                 ? 'bg-blue-600 text-white rounded-tr-none' 
-                : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none'
+                : (msg.isError ? 'bg-red-50 border border-red-100 text-red-600' : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none')
             }`}>
               <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
               
-              {/* 选择题选项渲染 */}
+              {/* 选择题选项渲染（如果是最新的 AI 消息） */}
               {msg.type === 'choice' && msg.options && (
                 <div className="mt-4 space-y-2">
                   {msg.options.map((option, optIdx) => (
                     <button
                       key={optIdx}
-                      onClick={() => !loading && handleSend(option)} // 点击即发送
-                      disabled={loading || idx !== messages.length - 1} // 只能回答最后一题
+                      onClick={() => !loading && handleSend(option)}
+                      disabled={loading || idx !== messages.length - 1}
                       className={`w-full text-left p-3 rounded-lg border transition-all ${
                         loading || idx !== messages.length - 1
                           ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
@@ -188,6 +210,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
             </div>
           </div>
         ))}
+        {/* 打字中占位符 */}
         {loading && (
           <div className="flex justify-start">
             <div className="bg-white border border-gray-100 p-4 rounded-2xl rounded-tl-none shadow-sm flex gap-2">
@@ -199,10 +222,10 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
         )}
       </div>
 
-      {/* Input */}
+      {/* 底部输入框与语音工具栏 */}
       <div className="p-4 bg-white border-t border-gray-100">
         <div className="relative flex items-center gap-2">
-          {/* 语音输入按钮 */}
+          {/* 录音按钮 */}
           <button
             onClick={toggleRecording}
             className={`p-3 rounded-full transition-all ${
@@ -230,6 +253,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
             placeholder={isRecording ? "正在听..." : "输入你的回答..."}
             className="flex-1 px-4 py-3 bg-gray-50 border border-transparent focus:bg-white focus:border-blue-500 rounded-xl outline-none resize-none transition-all"
           />
+          {/* 发送按钮 */}
           <button
             onClick={() => handleSend()}
             disabled={loading || !inputText.trim()}
@@ -251,4 +275,3 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({ config, onFinish })
 };
 
 export default InterviewSession;
-
