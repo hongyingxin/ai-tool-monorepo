@@ -4,12 +4,16 @@ import type { InterviewConfig, Message } from './types';
 import SettingsForm from './components/SettingsForm';
 import InterviewSession from './components/InterviewSession';
 import FeedbackReport from './components/FeedbackReport';
-import { Sparkles, MessageSquare, ArrowRight, Cpu } from 'lucide-react';
+import HistoryList from './components/HistoryList';
+import HistoryDetail from './components/HistoryDetail';
+import type { InterviewRecord } from './db';
+import { Sparkles, MessageSquare, ArrowRight, Cpu, History } from 'lucide-react';
 
 const InterviewPage: React.FC = () => {
   const [status, setStatus] = useState<InterviewStatus>(InterviewStatus.IDLE);
   const [config, setConfig] = useState<InterviewConfig | null>(null);
   const [history, setHistory] = useState<Message[]>([]);
+  const [viewingRecord, setViewingRecord] = useState<InterviewRecord | null>(null);
 
   const handleStartInterview = (newConfig: InterviewConfig) => {
     setConfig(newConfig);
@@ -25,6 +29,12 @@ const InterviewPage: React.FC = () => {
     setStatus(InterviewStatus.IDLE);
     setHistory([]);
     setConfig(null);
+    setViewingRecord(null);
+  };
+
+  const handleSelectHistory = (record: InterviewRecord) => {
+    setViewingRecord(record);
+    setStatus(InterviewStatus.VIEWING_HISTORY);
   };
 
   return (
@@ -48,10 +58,10 @@ const InterviewPage: React.FC = () => {
               在真实挑战到来前，找回你最好的表达状态。
             </p>
 
-            <div className="pt-12">
+            <div className="pt-12 flex flex-col md:flex-row items-center justify-center gap-4">
               <button
                 onClick={() => setStatus(InterviewStatus.CONFIGURING)}
-                className="group relative px-12 py-5 bg-slate-900 text-white rounded-2xl font-bold overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-xl shadow-slate-200"
+                className="group relative px-12 py-5 bg-slate-900 text-white rounded-2xl font-bold overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-xl shadow-slate-200 w-full md:w-auto"
               >
                 <span className="relative z-10 flex items-center gap-3 text-lg">
                   初始化面试场景
@@ -59,23 +69,15 @@ const InterviewPage: React.FC = () => {
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </button>
-            </div>
 
-            {/* Technical metadata footer */}
-            {/* <div className="pt-20 grid grid-cols-1 md:grid-cols-3 gap-8 text-left border-t border-slate-100 mt-20">
-              {[
-                { label: 'SUPPORT_ROLES', value: '全行业岗位覆盖', icon: <Cpu size={14} /> },
-                { label: 'LANGUAGE_ENGINE', value: '中英双语切换', icon: <MessageSquare size={14} /> },
-                { label: 'ANALYSIS_DEPTH', value: '多维深度评估', icon: <Sparkles size={14} /> }
-              ].map((stat, i) => (
-                <div key={i} className="space-y-2">
-                  <p className="text-[10px] font-mono font-bold text-slate-300 tracking-widest flex items-center gap-2">
-                    {stat.icon} {stat.label}
-                  </p>
-                  <p className="text-sm font-bold text-slate-600">{stat.value}</p>
-                </div>
-              ))}
-            </div> */}
+              <button
+                onClick={() => setStatus(InterviewStatus.HISTORY)}
+                className="flex items-center gap-2 px-8 py-5 bg-white border-2 border-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all hover:border-slate-200 w-full md:w-auto justify-center"
+              >
+                <History size={20} />
+                查看面试历史
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -96,6 +98,20 @@ const InterviewPage: React.FC = () => {
         <div className="py-8">
           <FeedbackReport history={history} config={config} onRestart={handleRestart} />
         </div>
+      )}
+
+      {status === InterviewStatus.HISTORY && (
+        <HistoryList 
+          onSelect={handleSelectHistory} 
+          onBack={handleRestart} 
+        />
+      )}
+
+      {status === InterviewStatus.VIEWING_HISTORY && viewingRecord && (
+        <HistoryDetail 
+          record={viewingRecord} 
+          onBack={() => setStatus(InterviewStatus.HISTORY)} 
+        />
       )}
     </div>
   );

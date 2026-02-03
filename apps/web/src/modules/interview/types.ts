@@ -2,7 +2,9 @@ export enum InterviewStatus {
   IDLE = 'IDLE',
   CONFIGURING = 'CONFIGURING',
   INTERVIEWING = 'INTERVIEWING',
-  COMPLETED = 'COMPLETED'
+  COMPLETED = 'COMPLETED',
+  HISTORY = 'HISTORY',
+  VIEWING_HISTORY = 'VIEWING_HISTORY'
 }
 
 export interface InterviewConfig {
