@@ -12,12 +12,24 @@ const FeedbackReport: React.FC<FeedbackReportProps> = ({ history, config, onRest
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rawStreamedText, setRawStreamedText] = useState('');
 
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
-        const result = await api.getFeedback(history, config);
-        setFeedback(result);
+        setLoading(true);
+        const resultText = await api.getFeedbackStream(history, config, (text) => {
+          setRawStreamedText(text);
+        });
+        
+        // 尝试从流式结果中解析最终的 JSON
+        try {
+          const parsedFeedback = JSON.parse(resultText);
+          setFeedback(parsedFeedback);
+        } catch (parseError) {
+          console.error("Failed to parse final feedback JSON:", resultText);
+          setError("报告生成格式有误，请重试。");
+        }
       } catch (e) {
         console.error(e);
         setError("无法生成评估报告，请检查网络或稍后重试。");
@@ -30,10 +42,25 @@ const FeedbackReport: React.FC<FeedbackReportProps> = ({ history, config, onRest
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto p-12 text-center bg-white rounded-3xl shadow-sm border border-gray-100">
-        <div className="inline-block animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mb-6"></div>
-        <h2 className="text-2xl font-bold text-gray-800">正在进行面试复盘...</h2>
-        <p className="text-gray-500 mt-2">专家 AI 正在深度分析你的表现并生成报告</p>
+      <div className="max-w-4xl mx-auto p-12 bg-white rounded-3xl shadow-sm border border-gray-100">
+        <div className="text-center mb-8">
+          <div className="inline-block animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mb-6"></div>
+          <h2 className="text-2xl font-bold text-gray-800">正在进行面试复盘...</h2>
+          <p className="text-gray-500 mt-2">专家 AI 正在深度分析你的表现并生成报告</p>
+        </div>
+        
+        {/* 显示流式生成的进度预览 */}
+        {rawStreamedText && (
+          <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-100 font-mono text-xs text-slate-400 overflow-hidden">
+            <div className="flex items-center gap-2 mb-2 text-slate-500">
+              <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+              <span>正在生成数据块...</span>
+            </div>
+            <div className="whitespace-pre-wrap break-all opacity-50">
+              {rawStreamedText.length > 500 ? '...' + rawStreamedText.slice(-500) : rawStreamedText}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

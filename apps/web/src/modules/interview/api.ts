@@ -10,4 +10,13 @@ export const api = {
 
   getFeedback: (history: Message[], config: InterviewConfig) => 
     client.post<Feedback>('/ai/feedback', { history, config }),
+
+  getFeedbackStream: async (history: Message[], config: InterviewConfig, onChunk: (text: string) => void) => {
+    let fullText = '';
+    await client.stream('/ai/feedback/stream', { history, config }, (chunkText) => {
+      fullText += chunkText;
+      onChunk(fullText);
+    });
+    return fullText;
+  },
 };

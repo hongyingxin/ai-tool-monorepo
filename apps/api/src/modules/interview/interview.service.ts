@@ -96,13 +96,24 @@ export class InterviewService {
 
     const evaluationModel = this.geminiClient.getModel(
       {
-        model: 'gemini-2.5-pro',
+        model: 'gemini-2.5-flash',
         systemInstruction: {
           role: 'system',
           parts: [{ text: EVALUATION_SYSTEM_PROMPT }],
         },
         generationConfig: {
           responseMimeType: 'application/json',
+          responseSchema: {
+            type: SchemaType.OBJECT,
+            properties: {
+              score: { type: SchemaType.NUMBER, description: '综合评分 0-100' },
+              pros: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+              cons: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+              suggestions: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+              overallSummary: { type: SchemaType.STRING },
+            },
+            required: ['score', 'pros', 'cons', 'suggestions', 'overallSummary'],
+          },
         },
       }
     );
