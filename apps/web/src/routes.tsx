@@ -1,13 +1,13 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import Layout from './shared/components/Layout';
 import Home from './modules/home/Home';
-import InterviewModule from './modules/interview/InterviewModule';
-import InterviewHome from './modules/interview/InterviewHome';
-import SettingsForm from './modules/interview/components/SettingsForm';
-import InterviewSession from './modules/interview/components/InterviewSession';
-import FeedbackReport from './modules/interview/components/FeedbackReport';
-import HistoryList from './modules/interview/components/HistoryList';
-import HistoryDetail from './modules/interview/components/HistoryDetail';
+import InterviewModule from './modules/interview/pages/InterviewModule';
+import InterviewHome from './modules/interview/pages/InterviewHome';
+import SettingsForm from './modules/interview/pages/SettingsForm';
+import InterviewSession from './modules/interview/pages/InterviewSession';
+import FeedbackReport from './modules/interview/pages/FeedbackReport';
+import HistoryList from './modules/interview/pages/HistoryList';
+import HistoryDetail from './modules/interview/pages/HistoryDetail';
 import ChatPage from './modules/chat/ChatPage';
 import SettingsPage from './modules/settings/SettingsPage';
 

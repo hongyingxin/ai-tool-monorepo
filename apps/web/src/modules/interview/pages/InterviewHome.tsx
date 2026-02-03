@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useInterviewStore } from './store';
+import { useInterviewStore } from '../store';
 import { ArrowRight, History } from 'lucide-react';
 
 /**

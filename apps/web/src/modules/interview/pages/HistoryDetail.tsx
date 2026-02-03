@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { interviewDB, type InterviewRecord } from '../db';
-import EvaluationResults from './EvaluationResults';
+import EvaluationResults from '../components/EvaluationResults';
 import { Clock, MessageSquare, Target, ChevronDown, ChevronUp } from 'lucide-react';
 
 /**
  * 面试详情展示页面组件
- * 通过 URL 中的 id 参数加载对应的面试记录
  */
 const HistoryDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,7 +14,6 @@ const HistoryDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isChatExpanded, setIsChatExpanded] = useState(false);
 
-  // 根据路由参数中的 id 加载数据
   useEffect(() => {
     if (id) {
       loadRecord(id);
@@ -29,7 +27,6 @@ const HistoryDetail: React.FC = () => {
       if (data) {
         setRecord(data);
       } else {
-        // 如果找不到记录，返回列表页
         navigate('/interview/history');
       }
     } catch (error) {
@@ -53,10 +50,8 @@ const HistoryDetail: React.FC = () => {
 
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* 1. 记录概览卡片 */}
       <div className="bg-slate-900 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl shadow-slate-200 overflow-hidden relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2"></div>
-        
         <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div className="space-y-6">
             <div className="flex items-center gap-3">
@@ -69,12 +64,10 @@ const HistoryDetail: React.FC = () => {
                 {new Date(record.createdAt).toLocaleString('zh-CN')}
               </div>
             </div>
-
             <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
               {record.config.jobTitle} <br />
               <span className="text-blue-500 text-2xl md:text-3xl opacity-80">@{record.config.company || '通用场景'}</span>
             </h1>
-
             <div className="flex flex-wrap gap-4 pt-2">
               <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
                 <Target size={16} className="text-blue-400" />
@@ -86,7 +79,6 @@ const HistoryDetail: React.FC = () => {
               </div>
             </div>
           </div>
-
           <div className="flex flex-col items-center md:items-end gap-2">
             <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">模拟面试评分</div>
             <div className="flex items-baseline gap-1">
@@ -97,7 +89,6 @@ const HistoryDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. 历史对话记录回顾 (可收纳 + 内部滚动) */}
       <section className="space-y-6">
         <div 
           onClick={() => setIsChatExpanded(!isChatExpanded)}
@@ -114,7 +105,6 @@ const HistoryDetail: React.FC = () => {
             {isChatExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
           </div>
         </div>
-
         {isChatExpanded && (
           <div className="bg-slate-50/50 rounded-[2.5rem] border border-slate-100 p-6 md:p-8 animate-in slide-in-from-top-4 fade-in duration-500">
             <div className="max-h-[500px] overflow-y-auto pr-4 custom-scrollbar space-y-6">
@@ -142,7 +132,6 @@ const HistoryDetail: React.FC = () => {
         )}
       </section>
 
-      {/* 3. 评估结果详细报告 */}
       <section className="space-y-6">
         <div className="flex items-center gap-3 mb-6 px-2">
           <div className="w-2 h-8 bg-blue-600 rounded-full"></div>
@@ -155,3 +144,4 @@ const HistoryDetail: React.FC = () => {
 };
 
 export default HistoryDetail;
+

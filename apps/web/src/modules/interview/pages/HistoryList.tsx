@@ -4,15 +4,13 @@ import { interviewDB, type InterviewRecord } from '../db';
 import { History, Calendar, Briefcase, ChevronRight, Trash2 } from 'lucide-react';
 
 /**
- * 面试历史记录列表组件
- * 展示用户过去完成的所有面试练习，支持查看详情和删除
+ * 面试历史记录列表页面组件
  */
 const HistoryList: React.FC = () => {
   const navigate = useNavigate();
   const [records, setRecords] = useState<InterviewRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 初始化加载数据
   useEffect(() => {
     loadRecords();
   }, []);
@@ -30,7 +28,7 @@ const HistoryList: React.FC = () => {
   };
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation(); // 阻止触发查看详情
+    e.stopPropagation();
     if (confirm('确定要删除这条面试记录吗？')) {
       try {
         await interviewDB.deleteInterview(id);
@@ -92,7 +90,6 @@ const HistoryList: React.FC = () => {
                       })}
                     </div>
                   </div>
-
                   <div>
                     <h4 className="text-xl font-black text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">
                       {record.config.jobTitle}
@@ -107,7 +104,6 @@ const HistoryList: React.FC = () => {
                     </div>
                   </div>
                 </div>
-
                 <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-4 md:pt-0">
                   <div className="text-right">
                     <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">得分</div>
@@ -115,7 +111,6 @@ const HistoryList: React.FC = () => {
                       {record.feedback.score}<span className="text-sm text-slate-300 ml-0.5">/100</span>
                     </div>
                   </div>
-                  
                   <div className="flex items-center gap-2">
                     <button
                       onClick={(e) => handleDelete(e, record.id)}
@@ -139,3 +134,4 @@ const HistoryList: React.FC = () => {
 };
 
 export default HistoryList;
+

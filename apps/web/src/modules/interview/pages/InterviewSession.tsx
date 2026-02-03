@@ -6,33 +6,26 @@ import { useInterviewStore } from '../store';
 import { Mic, Send, LogOut, Loader2, Sparkles } from 'lucide-react';
 
 /**
- * 面试会话核心组件
+ * 面试会话核心页面组件 (原 InterviewSession)
  * 路由路径: /interview/session
- * 负责实时对话、语音识别、消息发送以及与后端的 Chat 接口对接
- * 使用 Zustand Store 存储对话，实现刷新不丢失
  */
 const InterviewSession: React.FC = () => {
   const navigate = useNavigate();
   const { config, messages, addMessage, setMessages } = useInterviewStore();
   
-  // 当前输入框的文本
   const [inputText, setInputText] = useState('');
-  // 接口请求中的加载状态
   const [loading, setLoading] = useState(false);
-  // 是否正在录音
   const [isRecording, setIsRecording] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
-  // 校验配置是否存在，如果不存在则退回设置页
   useEffect(() => {
     if (!config) {
       navigate('/interview/setup');
     }
   }, [config, navigate]);
 
-  // 初始化语音识别 (Web Speech API)
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       // @ts-ignore
@@ -65,9 +58,6 @@ const InterviewSession: React.FC = () => {
     }
   }, []);
 
-  /**
-   * 切换录音状态
-   */
   const toggleRecording = () => {
     if (isRecording) {
       recognitionRef.current?.stop();
@@ -77,9 +67,6 @@ const InterviewSession: React.FC = () => {
     }
   };
 
-  /**
-   * 解析后端返回的包含 JSON 的响应
-   */
   const parseResponse = (text: string): Message => {
     try {
       const data: InterviewResponse = JSON.parse(text);
@@ -99,7 +86,6 @@ const InterviewSession: React.FC = () => {
     }
   };
 
-  // 组件加载时自动初始化面试，获取第一句开场白（如果消息列表为空）
   useEffect(() => {
     if (config && messages.length === 0) {
       const initInterview = async () => {
@@ -119,16 +105,12 @@ const InterviewSession: React.FC = () => {
     }
   }, [config, messages.length, setMessages, addMessage]);
 
-  // 消息更新后自动滚动到底部
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  /**
-   * 发送用户消息
-   */
   const handleSend = async (textOverride?: string) => {
     const textToSend = textOverride || inputText;
     if (!textToSend.trim() || loading || !config) return;
@@ -136,7 +118,6 @@ const InterviewSession: React.FC = () => {
     const userMsg: Message = { role: 'user', text: textToSend, timestamp: Date.now() };
     const updatedMessages = [...messages, userMsg];
     
-    // 立即更新 Store 以反馈 UI
     setMessages(updatedMessages);
     setInputText('');
     setLoading(true);
@@ -153,9 +134,6 @@ const InterviewSession: React.FC = () => {
     }
   };
 
-  /**
-   * 结束面试，跳转到结果页
-   */
   const handleFinish = () => {
     if (messages.length < 2) {
       if (!confirm('面试还没有正式开始，确定要结束吗？')) return;
@@ -167,7 +145,6 @@ const InterviewSession: React.FC = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-160px)] max-w-4xl mx-auto bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-500">
-      {/* 顶部标题栏 */}
       <div className="bg-slate-50/50 border-b border-slate-100 p-6 flex justify-between items-center backdrop-blur-md">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
@@ -195,7 +172,6 @@ const InterviewSession: React.FC = () => {
         </button>
       </div>
 
-      {/* 对话消息滚动区 */}
       <div 
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-8 space-y-8 bg-white custom-scrollbar"
@@ -213,8 +189,6 @@ const InterviewSession: React.FC = () => {
                 : (msg.isError ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-700 rounded-tl-none')
             }`}>
               <p className="whitespace-pre-wrap leading-relaxed text-sm">{msg.text}</p>
-              
-              {/* 选择题选项 */}
               {msg.type === 'choice' && msg.options && (
                 <div className="mt-5 space-y-2">
                   {msg.options.map((option: string, optIdx: number) => (
@@ -236,7 +210,6 @@ const InterviewSession: React.FC = () => {
             </div>
           </div>
         ))}
-        {/* 打字中占位符 */}
         {loading && (
           <div className="flex flex-col items-start animate-pulse">
             <div className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-2 px-1">面试官正在输入</div>
@@ -249,7 +222,6 @@ const InterviewSession: React.FC = () => {
         )}
       </div>
 
-      {/* 底部输入框与语音工具栏 */}
       <div className="p-6 bg-slate-50/50 border-t border-slate-100">
         <div className="relative flex items-center gap-3">
           <button
@@ -262,7 +234,6 @@ const InterviewSession: React.FC = () => {
           >
             <Mic size={20} />
           </button>
-
           <div className="relative flex-1">
             <textarea
               rows={1}
@@ -278,7 +249,6 @@ const InterviewSession: React.FC = () => {
               className="w-full px-6 py-4 bg-white border border-slate-100 focus:border-blue-500 rounded-2xl outline-none resize-none transition-all shadow-sm font-medium placeholder:text-slate-300"
             />
           </div>
-
           <button
             onClick={() => handleSend()}
             disabled={loading || !inputText.trim()}
@@ -297,3 +267,4 @@ const InterviewSession: React.FC = () => {
 };
 
 export default InterviewSession;
+
