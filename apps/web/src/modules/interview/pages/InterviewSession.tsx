@@ -246,7 +246,7 @@ const InterviewSession: React.FC = () => {
                 }
               }}
               placeholder={isRecording ? "正在倾听..." : "输入你的回答..."}
-              className="w-full px-6 py-4 bg-white border border-slate-100 focus:border-blue-500 rounded-2xl outline-none resize-none transition-all shadow-sm font-medium placeholder:text-slate-300"
+              className="w-full px-6 py-4 bg-white border border-slate-100 focus:border-blue-500 rounded-2xl outline-none resize-none transition-all shadow-sm text-sm font-normal placeholder:text-slate-300"
             />
           </div>
           <button
