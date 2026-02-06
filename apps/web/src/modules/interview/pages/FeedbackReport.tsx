@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Feedback } from '../types';
+// import type { Feedback } from '../types';
 import { api } from '../api';
 import { interviewDB } from '../db';
 import { useInterviewStore } from '../store';
