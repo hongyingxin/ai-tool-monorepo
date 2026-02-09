@@ -6,7 +6,7 @@ export class DebugController {
   @Get('ping')
   ping() {
     return {
-      message: 'pong',
+      message: 'pong123',
       timestamp: new Date().toISOString(),
     };
   }
