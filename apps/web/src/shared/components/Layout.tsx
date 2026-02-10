@@ -117,7 +117,7 @@ const Layout: React.FC = () => {
 
         {/* Unified Scrollable Container */}
         <div className="flex-1 overflow-y-auto custom-scrollbar bg-white">
-          <div className="max-w-5xl mx-auto min-h-full px-8 py-10">
+          <div className={`${location.pathname === '/chat' ? 'max-w-none h-full' : 'max-w-5xl mx-auto px-8 py-10 min-h-full'}`}>
             <Outlet />
           </div>
         </div>

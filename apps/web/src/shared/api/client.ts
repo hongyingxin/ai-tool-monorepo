@@ -51,7 +51,7 @@ export const client = {
   delete: <T>(endpoint: string, config?: RequestOptions) => 
     request<T>(endpoint, { ...config, method: 'DELETE' }),
 
-  stream: async (endpoint: string, data: any, onMessage: (text: string) => void, onError?: (err: any) => void) => {
+  stream: async (endpoint: string, data: any, onMessage: (text: string) => void, onError?: (err: any) => void, signal?: AbortSignal) => {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
@@ -60,39 +60,63 @@ export const client = {
           'Accept': 'text/event-stream',
         },
         body: JSON.stringify(data),
+        signal,
       });
 
-      if (!response.ok) throw new Error('Stream request failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Stream request failed');
+      }
       if (!response.body) throw new Error('No response body');
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         
-        const chunk = decoder.decode(value, { stream: true });
-        // NestJS SSE format: "data: { ... }\n\n"
-        const lines = chunk.split('\n');
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
+        buffer += decoder.decode(value, { stream: true });
+        
+        let boundary = buffer.indexOf('\n\n');
+        while (boundary !== -1) {
+          const event = buffer.slice(0, boundary).trim();
+          buffer = buffer.slice(boundary + 2);
+
+          const lines = event.split('\n');
+          let dataContent = '';
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              dataContent += line.slice(6);
+            }
+          }
+
+          if (dataContent) {
             try {
-              const jsonStr = line.slice(6);
-              if (!jsonStr.trim()) continue;
-              const payload = JSON.parse(jsonStr);
+              const payload = JSON.parse(dataContent);
+              if (payload.error) {
+                onError?.(new Error(payload.error));
+                return;
+              }
               if (payload.text) {
                 onMessage(payload.text);
               }
             } catch (e) {
-              console.warn('Failed to parse SSE chunk:', line);
+              console.warn('Failed to parse SSE payload:', dataContent, e);
             }
           }
+          boundary = buffer.indexOf('\n\n');
         }
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.log('[Stream] Request aborted');
+        return;
+      }
       console.error('[Stream Error]:', error);
       onError?.(error);
+      throw error; // 向上传递错误以触发 ChatPage 的 finally
     }
   }
 };
