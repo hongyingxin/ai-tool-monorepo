@@ -13,7 +13,7 @@ const ChatPage: React.FC = () => {
   const [models, setModels] = useState<AIModel[]>([]);
   const [selectedModel, setSelectedModel] = useState<AIModel | null>(null);
   const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
   
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -24,6 +24,21 @@ const ChatPage: React.FC = () => {
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  /**
+   * 响应式监听：在窗口过小时自动收起侧边栏
+   */
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   /**
    * 初始化：获取模型列表及历史会话
@@ -253,19 +268,32 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="h-full flex bg-white overflow-hidden animate-in fade-in duration-500 relative">
+      {/* Sidebar Overlay for Mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div 
-        className={`border-r border-gray-100 bg-gray-50/30 shrink-0 transition-all duration-300 ease-in-out overflow-hidden ${
-          isSidebarOpen ? 'w-80' : 'w-0 border-r-0'
-        }`}
+        className={`
+          fixed md:relative inset-y-0 left-0 z-50 md:z-auto
+          border-r border-gray-100 bg-gray-50/30 shrink-0 transition-all duration-300 ease-in-out overflow-hidden
+          ${isSidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:translate-x-0'}
+        `}
       >
-        <div className="w-80 h-full flex flex-col">
-          <div className="p-6 flex items-center gap-3">
+        <div className="w-72 h-full flex flex-col">
+          <div className="p-4 md:p-6 flex items-center gap-3">
             <button 
-              onClick={createNewSession}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-white border border-blue-100 rounded-2xl font-bold text-blue-700 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm active:scale-95"
+              onClick={() => {
+                createNewSession();
+                if (window.innerWidth < 768) setIsSidebarOpen(false);
+              }}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border border-blue-100 rounded-2xl font-bold text-blue-700 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm active:scale-95 text-sm"
             >
-              <Plus size={18} />
+              <Plus size={16} />
               开启新对话
             </button>
             <button 
@@ -277,7 +305,7 @@ const ChatPage: React.FC = () => {
             </button>
           </div>
           
-          <div className="flex-1 overflow-y-auto px-4 space-y-1.5 custom-scrollbar pb-6">
+          <div className="flex-1 overflow-y-auto px-3 space-y-1.5 custom-scrollbar pb-6">
             <div className="px-3 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
               历史会话
             </div>
@@ -292,8 +320,11 @@ const ChatPage: React.FC = () => {
               sessions.map(session => (
                 <div 
                   key={session.id}
-                  onClick={() => selectSession(session.id)}
-                  className={`group relative flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer transition-all ${
+                  onClick={() => {
+                    selectSession(session.id);
+                    if (window.innerWidth < 768) setIsSidebarOpen(false);
+                  }}
+                  className={`group relative flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all ${
                     currentSessionId === session.id 
                       ? 'bg-blue-50/50 text-blue-700 border-l-4 border-l-blue-500' 
                       : 'text-gray-500 hover:bg-gray-100/50 hover:text-gray-700'
@@ -319,38 +350,38 @@ const ChatPage: React.FC = () => {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0 bg-white">
         {/* Chat Header (Inner) */}
-        <div className="h-16 px-8 border-b border-gray-50 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-4">
+        <div className="h-14 md:h-16 px-4 md:px-8 border-b border-gray-50 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2 md:gap-4">
             {!isSidebarOpen && (
               <button 
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all mr-2"
+                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                 title="显示侧边栏"
               >
-                <PanelLeftOpen size={22} />
+                <PanelLeftOpen size={20} md:size={22} />
               </button>
             )}
             <div className="flex items-center gap-1.5 relative">
               <button 
                 onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 rounded-xl transition-colors group"
+                className="flex items-center gap-1.5 px-2 py-1 hover:bg-gray-50 rounded-lg transition-colors group"
               >
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-xs font-bold text-gray-600 group-hover:text-blue-600 transition-colors uppercase tracking-wider">
-                  {selectedModel?.displayName || '正在获取模型...'}
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                <span className="text-[10px] md:text-xs font-bold text-gray-600 group-hover:text-blue-600 transition-colors uppercase tracking-wider truncate max-w-[120px] md:max-w-none">
+                  {selectedModel?.displayName || '获取中...'}
                 </span>
-                <ChevronDown size={14} className={`text-gray-400 group-hover:text-blue-600 transition-transform ${isModelMenuOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={12} className={`text-gray-400 group-hover:text-blue-600 transition-transform ${isModelMenuOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {/* Model Dropdown */}
               {isModelMenuOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setIsModelMenuOpen(false)}></div>
-                  <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-100 shadow-2xl rounded-2xl z-50 py-2 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute top-full left-0 mt-2 w-64 md:w-72 bg-white border border-gray-100 shadow-2xl rounded-2xl z-50 py-2 animate-in fade-in zoom-in-95 duration-200">
                     <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">
                       选择 AI 模型
                     </div>
-                    <div className="max-h-[28rem] overflow-y-auto custom-scrollbar">
+                    <div className="max-h-[60vh] md:max-h-[28rem] overflow-y-auto custom-scrollbar">
                       {models.map((model) => (
                         <button
                           key={model.id}
@@ -358,17 +389,17 @@ const ChatPage: React.FC = () => {
                             setSelectedModel(model);
                             setIsModelMenuOpen(false);
                           }}
-                          className="w-full px-4 py-3.5 flex items-start gap-3 hover:bg-blue-50 transition-colors group text-left"
+                          className="w-full px-4 py-3 flex items-start gap-3 hover:bg-blue-50 transition-colors group text-left"
                         >
                           <div className={`mt-0.5 rounded-full p-1 ${selectedModel?.id === model.id ? 'bg-blue-100 text-blue-600' : 'text-transparent group-hover:text-gray-200'}`}>
                             <Check size={12} />
                           </div>
                           <div>
-                            <div className={`text-sm font-bold ${selectedModel?.id === model.id ? 'text-blue-700' : 'text-gray-700'}`}>
+                            <div className={`text-xs md:text-sm font-bold ${selectedModel?.id === model.id ? 'text-blue-700' : 'text-gray-700'}`}>
                               {model.displayName}
                             </div>
                             {model.description && (
-                              <div className="text-[11px] text-gray-400 line-clamp-2 leading-relaxed mt-1">
+                              <div className="text-[10px] text-gray-400 line-clamp-2 leading-relaxed mt-0.5">
                                 {model.description}
                               </div>
                             )}
@@ -382,7 +413,7 @@ const ChatPage: React.FC = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4">
              <div className="text-[10px] font-bold text-gray-300 uppercase tracking-[0.2em]">Powered by Gemini 2.0</div>
           </div>
         </div>
@@ -392,18 +423,18 @@ const ChatPage: React.FC = () => {
           ref={scrollRef}
           className="flex-1 overflow-y-auto custom-scrollbar bg-white"
         >
-          <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
+          <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10 space-y-8 md:space-y-10 pb-32">
             {messages.length === 0 ? (
-              <div className="h-[60vh] flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                <div className="w-24 h-24 bg-blue-50 rounded-[2.5rem] flex items-center justify-center text-blue-500 shadow-inner">
-                  <Sparkles size={48} />
+              <div className="min-h-[60vh] flex flex-col items-center justify-center text-center space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 px-4">
+                <div className="w-16 h-16 md:w-24 md:h-24 bg-blue-50 rounded-2xl md:rounded-[2.5rem] flex items-center justify-center text-blue-500 shadow-inner">
+                  <Sparkles size={32} md:size={48} />
                 </div>
                 <div className="max-w-xl">
-                  <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">有什么我可以帮您的吗？</h2>
-                  <p className="text-gray-400 font-medium mb-10 text-lg">
+                  <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-3 tracking-tight">有什么我可以帮您的吗？</h2>
+                  <p className="text-sm md:text-lg text-gray-400 font-medium mb-8 md:mb-10">
                     作为您的 AI 助手，我可以帮您写代码、分析数据或解答任何问题。
                   </p>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                     {[
                       { icon: "💪", text: "制定一周健身计划" },
                       { icon: "🐍", text: "Python 爬虫脚本示例" },
@@ -413,9 +444,9 @@ const ChatPage: React.FC = () => {
                       <button 
                         key={i}
                         onClick={() => setInputText(hint.text)}
-                        className="p-5 bg-white border border-gray-100 rounded-2xl text-sm text-gray-600 hover:border-blue-200 hover:bg-blue-50/30 transition-all text-left font-bold shadow-sm group"
+                        className="p-4 md:p-5 bg-white border border-gray-100 rounded-2xl text-xs md:text-sm text-gray-600 hover:border-blue-200 hover:bg-blue-50/30 transition-all text-left font-bold shadow-sm group"
                       >
-                        <span className="text-xl mb-2 block group-hover:scale-110 transition-transform">{hint.icon}</span>
+                        <span className="text-lg md:text-xl mb-1.5 md:mb-2 block group-hover:scale-110 transition-transform">{hint.icon}</span>
                         {hint.text}
                       </button>
                     ))}
@@ -424,15 +455,15 @@ const ChatPage: React.FC = () => {
               </div>
             ) : (
               messages.map((msg, idx) => (
-                <div key={idx} className={`flex gap-6 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+                <div key={idx} className={`flex gap-3 md:gap-6 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
                   {msg.role === 'model' && (
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100 text-blue-600 shadow-sm">
-                      <Bot size={22} />
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100 text-blue-600 shadow-sm">
+                      <Bot size={18} md:size={22} />
                     </div>
                   )}
                   
-                  <div className={`flex flex-col space-y-3 max-w-[85%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                    <div className={`px-6 py-4 rounded-[2rem] text-sm leading-relaxed shadow-sm ${
+                  <div className={`flex flex-col space-y-2 md:space-y-3 max-w-[90%] md:max-w-[85%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    <div className={`px-4 md:px-6 py-3 md:py-4 rounded-2xl md:rounded-[2rem] text-xs md:text-sm leading-relaxed shadow-sm ${
                       msg.role === 'user' 
                         ? 'bg-blue-600 text-white rounded-tr-none' 
                         : msg.isError
@@ -440,31 +471,31 @@ const ChatPage: React.FC = () => {
                           : 'bg-gray-50 border border-gray-100 text-gray-800 rounded-tl-none'
                     }`}>
                       <div className="whitespace-pre-wrap font-medium">{msg.content || (isLoading && idx === messages.length - 1 ? (
-                        <div className="flex gap-1.5 py-2">
-                          <div className="w-2 h-2 bg-blue-300 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-blue-300 rounded-full animate-bounce [animation-delay:-.3s]"></div>
-                          <div className="w-2 h-2 bg-blue-300 rounded-full animate-bounce [animation-delay:-.5s]"></div>
+                        <div className="flex gap-1 py-1.5">
+                          <div className="w-1.5 h-1.5 bg-blue-300 rounded-full animate-bounce"></div>
+                          <div className="w-1.5 h-1.5 bg-blue-300 rounded-full animate-bounce [animation-delay:-.3s]"></div>
+                          <div className="w-1.5 h-1.5 bg-blue-300 rounded-full animate-bounce [animation-delay:-.5s]"></div>
                         </div>
                       ) : null)}</div>
                     </div>
                     
-                    <div className="flex items-center gap-3 px-2">
+                    <div className="flex items-center gap-2 md:gap-3 px-1 md:px-2">
                       {msg.role === 'model' && msg.content && (
                         <>
                           <button 
                             onClick={() => copyToClipboard(msg.content)}
-                            className="p-2 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+                            className="p-1.5 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                             title="复制内容"
                           >
-                            <Copy size={16} />
+                            <Copy size={14} md:size={16} />
                           </button>
                           {idx === messages.length - 1 && !isLoading && (
                             <button 
                               onClick={handleRegenerate}
-                              className="p-2 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+                              className="p-1.5 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                               title="重新生成"
                             >
-                              <Sparkles size={16} />
+                              <Sparkles size={14} md:size={16} />
                             </button>
                           )}
                         </>
@@ -473,8 +504,8 @@ const ChatPage: React.FC = () => {
                   </div>
 
                   {msg.role === 'user' && (
-                    <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 text-white shadow-md">
-                      <User size={22} />
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-blue-600 flex items-center justify-center shrink-0 text-white shadow-md">
+                      <User size={18} md:size={22} />
                     </div>
                   )}
                 </div>
@@ -484,10 +515,10 @@ const ChatPage: React.FC = () => {
         </div>
 
         {/* Chat Input Area */}
-        <div className="p-8 bg-white border-t border-gray-50">
+        <div className="p-4 md:p-8 bg-white border-t border-gray-50 pb-24 md:pb-8">
           <div className="max-w-5xl mx-auto relative group">
             <div className="absolute inset-0 bg-blue-500/5 blur-xl group-focus-within:bg-blue-500/10 transition-all rounded-[2rem]"></div>
-            <div className="relative flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-[2rem] p-3 focus-within:border-blue-500 focus-within:bg-white transition-all shadow-sm">
+            <div className="relative flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl md:rounded-[2rem] p-2 md:p-3 focus-within:border-blue-500 focus-within:bg-white transition-all shadow-sm">
               <textarea 
                 ref={textareaRef}
                 value={inputText}
@@ -500,32 +531,32 @@ const ChatPage: React.FC = () => {
                 }}
                 placeholder={`向 ${selectedModel?.displayName || 'AI'} 提问...`}
                 rows={1}
-                className="flex-1 pl-5 pr-2 py-3 bg-transparent outline-none resize-none custom-scrollbar min-h-[48px] max-h-60 text-base text-gray-700 placeholder:text-gray-400 font-medium"
+                className="flex-1 pl-3 md:pl-5 pr-2 py-2 md:py-3 bg-transparent outline-none resize-none custom-scrollbar min-h-[40px] md:min-h-[48px] max-h-40 md:max-h-60 text-sm md:text-base text-gray-700 placeholder:text-gray-400 font-medium"
               />
-              <div className="pb-1 pr-1">
+              <div className="pb-0.5 md:pb-1 pr-0.5 md:pr-1">
                 {isLoading ? (
                   <button 
                     onClick={handleStop}
-                    className="w-11 h-11 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition-all flex items-center justify-center shadow-sm"
+                    className="w-9 h-9 md:w-11 md:h-11 bg-red-50 text-red-600 rounded-xl md:rounded-2xl hover:bg-red-100 transition-all flex items-center justify-center shadow-sm"
                   >
-                    <div className="w-3 h-3 bg-red-600 rounded-sm animate-pulse"></div>
+                    <div className="w-2.5 h-2.5 bg-red-600 rounded-sm animate-pulse"></div>
                   </button>
                 ) : (
                   <button 
                     onClick={() => handleSend()}
                     disabled={!inputText.trim()}
-                    className={`w-11 h-11 rounded-2xl transition-all flex items-center justify-center ${
+                    className={`w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl transition-all flex items-center justify-center ${
                       !inputText.trim()
                         ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
                         : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-100 active:scale-95'
                     }`}
                   >
-                    <Send size={20} />
+                    <Send size={18} md:size={20} />
                   </button>
                 )}
               </div>
             </div>
-            <p className="text-center mt-4 text-[10px] text-gray-300 font-bold uppercase tracking-widest">
+            <p className="hidden md:block text-center mt-4 text-[10px] text-gray-300 font-bold uppercase tracking-widest">
               AI 可能会产生错误，请核实重要信息
             </p>
           </div>

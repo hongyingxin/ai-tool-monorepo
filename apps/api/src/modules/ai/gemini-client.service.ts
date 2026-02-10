@@ -74,7 +74,7 @@ export class GeminiClientService implements OnModuleInit {
         .filter((m: any) => 
           m.supportedGenerationMethods.includes('generateContent') && 
           m.name.includes('flash') &&
-          (m.name.includes('2.0') || m.name.includes('2.5') || m.name.includes('3.0'))
+          (m.name.includes('2') || m.name.includes('2.5') || m.name.includes('3'))
         )
         .map((m: any) => ({
           name: m.name,

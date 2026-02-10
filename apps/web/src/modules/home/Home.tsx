@@ -14,9 +14,9 @@ const tools = [
   {
     id: 'chat',
     title: 'AI 智能助手',
-    desc: '基于 Gemini 2.5 的通用对话助手，回答问题、编写代码或头脑风暴。',
-    icon: <MessageSquareText className="text-emerald-500" size={32} />,
-    color: 'bg-emerald-50',
+    desc: '基于 Gemini 2.0 的通用对话助手，回答问题、编写代码或头脑风暴。',
+    icon: <MessageSquareText className="text-blue-500" size={32} />,
+    color: 'bg-blue-50',
     path: '/chat'
   },
   {
@@ -47,24 +47,24 @@ const Home: React.FC = () => {
       <div className="absolute top-1/2 -left-24 w-72 h-72 bg-emerald-400/5 rounded-full blur-[80px] pointer-events-none"></div>
 
       {/* Hero Section */}
-      <div className="relative z-10 mt-6 mb-16 p-12 md:p-20 bg-white/60 backdrop-blur-xl rounded-[3.5rem] border border-white shadow-sm shadow-blue-500/5">
+      <div className="relative z-10 mt-2 md:mt-6 mb-8 md:mb-16 p-8 md:p-20 bg-white/60 backdrop-blur-xl rounded-3xl md:rounded-[3.5rem] border border-white shadow-sm shadow-blue-500/5">
         <div className="max-w-3xl">
-          <div className="flex items-center gap-4 mb-10">
-            <div className="px-4 py-1.5 rounded-full bg-white border border-blue-100 text-blue-600 text-[10px] font-black uppercase tracking-[0.2em] shadow-sm">
+          <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-10">
+            <div className="px-3 md:px-4 py-1.5 rounded-full bg-white border border-blue-100 text-blue-600 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] shadow-sm">
               小智工作台
             </div>
-            <div className="h-px w-12 bg-gray-200"></div>
-            <span className="text-gray-400 text-sm font-semibold tracking-wide">
+            <div className="h-px w-8 md:w-12 bg-gray-200"></div>
+            <span className="text-gray-400 text-xs md:text-sm font-semibold tracking-wide">
               {new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })}
             </span>
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-10 tracking-tight leading-[1.15]">
+          <h1 className="text-3xl md:text-7xl font-black text-gray-900 mb-6 md:mb-10 tracking-tight leading-[1.2] md:leading-[1.15]">
             你好，我是<span className="text-blue-600">小智</span><br />
             今天想开启哪项 AI 辅助？
           </h1>
           
-          <p className="text-gray-500 text-xl font-medium leading-[2] max-w-xl">
+          <p className="text-gray-500 text-base md:text-xl font-medium leading-relaxed md:leading-[2] max-w-xl">
             欢迎回到你的私人 AI 助手空间。在这里，你可以进行面试模拟、智能对话或通过 AI 深度优化你的工作流。
           </p>
         </div>
@@ -72,40 +72,40 @@ const Home: React.FC = () => {
 
       {/* Tools Grid */}
       <section className="relative z-10">
-        <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center justify-between mb-8 md:mb-12">
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-black text-gray-900 tracking-tight">核心工具</h2>
-            <span className="bg-gray-100 text-gray-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Beta</span>
+            <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">核心工具</h2>
+            <span className="bg-gray-100 text-gray-400 text-[8px] md:text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Beta</span>
           </div>
-          <span className="text-sm text-gray-400 font-bold tracking-wider uppercase">Active Modules: 4</span>
+          <span className="text-[10px] md:text-sm text-gray-400 font-bold tracking-wider uppercase">Active: 4</span>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 md:gap-6">
           {tools.map((tool) => (
             <div 
               key={tool.id}
               onClick={() => tool.path !== '#' && navigate(tool.path)}
               className={`
-                group p-8 rounded-[2rem] border border-gray-100 bg-white hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all cursor-pointer
+                group p-6 md:p-8 rounded-2xl md:rounded-[2rem] border border-gray-100 bg-white hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all cursor-pointer
                 ${tool.path === '#' ? 'opacity-60 cursor-not-allowed' : ''}
               `}
             >
-              <div className="flex items-start justify-between mb-6">
-                <div className={`w-16 h-16 ${tool.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                  {tool.icon}
+              <div className="flex items-start justify-between mb-4 md:mb-6">
+                <div className={`w-12 h-12 md:w-16 md:h-16 ${tool.color} rounded-xl md:rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                  {React.cloneElement(tool.icon as React.ReactElement, { size: window.innerWidth < 768 ? 24 : 32 })}
                 </div>
                 {tool.path === '#' ? (
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 border border-gray-100 px-2 py-1 rounded-md">即将上线</span>
+                  <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-gray-400 border border-gray-100 px-2 py-1 rounded-md">即将上线</span>
                 ) : (
-                  <div className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all">
-                    <ArrowRight size={20} />
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all">
+                    <ArrowRight size={16} md:size={20} />
                   </div>
                 )}
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+              <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1 md:mb-2 group-hover:text-blue-600 transition-colors">
                 {tool.title}
               </h3>
-              <p className="text-gray-500 text-sm leading-relaxed">
+              <p className="text-gray-500 text-xs md:text-sm leading-relaxed">
                 {tool.desc}
               </p>
             </div>

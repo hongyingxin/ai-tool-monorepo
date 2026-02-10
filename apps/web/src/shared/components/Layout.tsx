@@ -84,18 +84,18 @@ const Layout: React.FC = () => {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col overflow-hidden relative">
         {/* Top Header */}
-        <header className="h-20 flex items-center justify-between px-8 bg-white/80 backdrop-blur-md border-b border-slate-100 shrink-0">
+        <header className="h-16 md:h-20 flex items-center justify-between px-4 md:px-8 bg-white/80 backdrop-blur-md border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-4">
              {!isHome && (
                <button 
                  onClick={() => navigate(-1)}
-                 className="p-2.5 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 rounded-xl transition-all active:scale-95 border border-slate-100 group"
+                 className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 rounded-xl transition-all active:scale-95 border border-slate-100 group"
                >
-                 <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+                 <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
                </button>
              )}
              <div>
-               <h2 className="text-lg font-black text-slate-800 tracking-tight">
+               <h2 className="text-base md:text-lg font-black text-slate-800 tracking-tight">
                  {getPageTitle()}
                </h2>
              </div>
@@ -109,15 +109,21 @@ const Layout: React.FC = () => {
                 已连接
               </p>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
-              <UserRound size={20} />
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+              <UserRound size={18} />
             </div>
           </div>
         </header>
 
         {/* Unified Scrollable Container */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar bg-white">
-          <div className={`${location.pathname === '/chat' ? 'max-w-none h-full' : 'max-w-5xl mx-auto px-8 py-10 min-h-full'}`}>
+        <div className={`flex-1 overflow-y-auto custom-scrollbar bg-white ${
+          (location.pathname === '/chat' || location.pathname === '/interview/session') ? 'overflow-hidden' : ''
+        }`}>
+          <div className={`
+            ${(location.pathname === '/chat' || location.pathname === '/interview/session')
+              ? 'max-w-none h-full' 
+              : 'max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-10 min-h-full pb-32 md:pb-10'}
+          `}>
             <Outlet />
           </div>
         </div>

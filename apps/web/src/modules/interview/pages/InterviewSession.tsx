@@ -144,20 +144,20 @@ const InterviewSession: React.FC = () => {
   if (!config) return null;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-160px)] max-w-4xl mx-auto bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-500">
-      <div className="bg-slate-50/50 border-b border-slate-100 p-6 flex justify-between items-center backdrop-blur-md">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-            <Sparkles size={24} fill="currentColor" />
+    <div className="flex flex-col h-full md:h-[calc(100vh-160px)] max-w-4xl mx-auto bg-white md:rounded-[2.5rem] md:shadow-2xl md:shadow-slate-200/50 overflow-hidden md:border md:border-slate-100 animate-in fade-in zoom-in-95 duration-500 pb-20 md:pb-0">
+      <div className="bg-slate-50/50 border-b border-slate-100 p-4 md:p-6 flex justify-between items-center backdrop-blur-md">
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+            <Sparkles size={20} md:size={24} fill="currentColor" />
           </div>
           <div>
-            <h3 className="font-black text-slate-800 tracking-tight">AI 智能面试官</h3>
+            <h3 className="font-black text-slate-800 tracking-tight text-sm md:text-base">AI 智能面试官</h3>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="relative flex h-2 w-2">
+              <span className="relative flex h-1.5 w-1.5 md:h-2 md:w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 md:h-2 md:w-2 bg-green-500"></span>
               </span>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 truncate max-w-[120px] md:max-w-none">
                 Session Active • {config.jobTitle}
               </p>
             </div>
@@ -165,38 +165,39 @@ const InterviewSession: React.FC = () => {
         </div>
         <button
           onClick={handleFinish}
-          className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-100 text-slate-400 hover:text-red-500 hover:border-red-100 hover:bg-red-50 rounded-xl text-sm font-bold transition-all active:scale-95"
+          className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 bg-white border border-slate-100 text-slate-400 hover:text-red-500 hover:border-red-100 hover:bg-red-50 rounded-xl text-xs md:text-sm font-bold transition-all active:scale-95"
         >
-          <LogOut size={16} />
-          结束面试
+          <LogOut size={14} md:size={16} />
+          <span className="hidden xs:inline">结束面试</span>
+          <span className="xs:hidden">结束</span>
         </button>
       </div>
 
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-8 space-y-8 bg-white custom-scrollbar"
+        className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 bg-white custom-scrollbar"
       >
         {messages.map((msg: Message, idx: number) => (
           <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-            <div className="flex items-center gap-2 mb-2 px-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
+            <div className="flex items-center gap-2 mb-1.5 md:mb-2 px-1">
+              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-300">
                 {msg.role === 'user' ? '候选人' : '面试官'}
               </span>
             </div>
-            <div className={`max-w-[85%] rounded-[1.5rem] p-5 shadow-sm border ${
+            <div className={`max-w-[90%] md:max-w-[85%] rounded-2xl md:rounded-[1.5rem] p-4 md:p-5 shadow-sm border ${
               msg.role === 'user' 
                 ? 'bg-blue-600 text-white border-blue-500 rounded-tr-none' 
                 : (msg.isError ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-700 rounded-tl-none')
             }`}>
-              <p className="whitespace-pre-wrap leading-relaxed text-sm">{msg.text}</p>
+              <p className="whitespace-pre-wrap leading-relaxed text-xs md:text-sm">{msg.text}</p>
               {msg.type === 'choice' && msg.options && (
-                <div className="mt-5 space-y-2">
+                <div className="mt-4 md:mt-5 space-y-2">
                   {msg.options.map((option: string, optIdx: number) => (
                     <button
                       key={optIdx}
                       onClick={() => !loading && handleSend(option)}
                       disabled={loading || idx !== messages.length - 1}
-                      className={`w-full text-left p-4 rounded-xl border transition-all font-bold text-sm ${
+                      className={`w-full text-left p-3 md:p-4 rounded-xl border transition-all font-bold text-xs md:text-sm ${
                         loading || idx !== messages.length - 1
                           ? 'bg-white/10 border-white/20 text-white/40 cursor-not-allowed'
                           : 'bg-white border-blue-100 hover:border-blue-400 hover:bg-blue-50 text-slate-700'
@@ -212,27 +213,27 @@ const InterviewSession: React.FC = () => {
         ))}
         {loading && (
           <div className="flex flex-col items-start animate-pulse">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-2 px-1">面试官正在输入</div>
-            <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl rounded-tl-none flex gap-1.5">
-              <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce"></div>
-              <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-.3s]"></div>
-              <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-.5s]"></div>
+            <div className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-300 mb-2 px-1">面试官正在输入</div>
+            <div className="bg-slate-50 border border-slate-100 p-3 md:p-4 rounded-xl md:rounded-2xl rounded-tl-none flex gap-1.5">
+              <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-slate-300 rounded-full animate-bounce"></div>
+              <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-.3s]"></div>
+              <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-.5s]"></div>
             </div>
           </div>
         )}
       </div>
 
-      <div className="p-6 bg-slate-50/50 border-t border-slate-100">
-        <div className="relative flex items-center gap-3">
+      <div className="p-4 md:p-6 bg-slate-50/50 border-t border-slate-100">
+        <div className="relative flex items-center gap-2 md:gap-3">
           <button
             onClick={toggleRecording}
-            className={`p-4 rounded-2xl transition-all active:scale-90 shadow-lg ${
+            className={`p-3 md:p-4 rounded-xl md:rounded-2xl transition-all active:scale-90 shadow-lg ${
               isRecording 
                 ? 'bg-red-500 text-white animate-pulse shadow-red-200' 
                 : 'bg-white text-slate-400 hover:text-blue-600 border border-slate-100 shadow-slate-100'
             }`}
           >
-            <Mic size={20} />
+            <Mic size={18} md:size={20} />
           </button>
           <div className="relative flex-1">
             <textarea
@@ -246,19 +247,19 @@ const InterviewSession: React.FC = () => {
                 }
               }}
               placeholder={isRecording ? "正在倾听..." : "输入你的回答..."}
-              className="w-full px-6 py-4 bg-white border border-slate-100 focus:border-blue-500 rounded-2xl outline-none resize-none transition-all shadow-sm text-sm font-normal placeholder:text-slate-300"
+              className="w-full px-4 md:px-6 py-3 md:py-4 bg-white border border-slate-100 focus:border-blue-500 rounded-xl md:rounded-2xl outline-none resize-none transition-all shadow-sm text-xs md:text-sm font-normal placeholder:text-slate-300"
             />
           </div>
           <button
             onClick={() => handleSend()}
             disabled={loading || !inputText.trim()}
-            className={`p-4 rounded-2xl transition-all active:scale-90 shadow-lg ${
+            className={`p-3 md:p-4 rounded-xl md:rounded-2xl transition-all active:scale-90 shadow-lg ${
               loading || !inputText.trim() 
                 ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none' 
                 : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200'
             }`}
           >
-            {loading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+            {loading ? <Loader2 size={18} md:size={20} className="animate-spin" /> : <Send size={18} md:size={20} />}
           </button>
         </div>
       </div>
