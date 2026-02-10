@@ -15,6 +15,18 @@ export interface AIModel {
 }
 
 /**
+ * 聊天消息附件定义
+ */
+export interface ChatAttachment {
+  /** 附件类型：目前仅支持图片 */
+  type: 'image';
+  /** Base64 数据内容 */
+  data: string;
+  /** MIME 类型 (如 image/jpeg) */
+  mimeType: string;
+}
+
+/**
  * 聊天消息定义
  */
 export interface ChatMessage {
@@ -24,6 +36,8 @@ export interface ChatMessage {
   content: string;
   /** 是否为错误消息 */
   isError?: boolean;
+  /** 消息关联的附件列表 */
+  attachments?: ChatAttachment[];
 }
 
 /**

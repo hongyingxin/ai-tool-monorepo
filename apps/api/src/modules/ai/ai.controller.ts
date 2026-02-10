@@ -3,6 +3,15 @@ import { GeminiClientService } from './gemini-client.service';
 import { Observable } from 'rxjs';
 
 /**
+ * 附件结构
+ */
+interface ChatAttachment {
+  type: 'image';
+  data: string;
+  mimeType: string;
+}
+
+/**
  * 聊天消息结构
  */
 interface ChatMessage {
@@ -10,6 +19,8 @@ interface ChatMessage {
   role: 'user' | 'model';
   /** 消息内容 */
   content: string;
+  /** 附件列表 */
+  attachments?: ChatAttachment[];
 }
 
 /**
@@ -49,12 +60,24 @@ export class AiController {
     const { model: modelId, messages } = body;
     
     // 准备历史记录：Gemini 要求的格式，排除最后一条作为当前输入
+    // 支持多模态内容 (文本 + 图片)
     const history = messages.slice(0, -1).map(m => ({
       role: m.role,
-      parts: [{ text: m.content }],
+      parts: [
+        { text: m.content },
+        ...(m.attachments || []).map(a => ({
+          inlineData: { data: a.data, mimeType: a.mimeType }
+        }))
+      ],
     }));
 
-    const currentMessage = messages[messages.length - 1].content;
+    const lastMessage = messages[messages.length - 1];
+    const currentParts = [
+      { text: lastMessage.content },
+      ...(lastMessage.attachments || []).map(a => ({
+        inlineData: { data: a.data, mimeType: a.mimeType }
+      }))
+    ];
 
     // 获取模型并开启聊天会话
     const model = this.geminiClient.getModel({ model: modelId });
@@ -63,7 +86,7 @@ export class AiController {
     return new Observable((subscriber) => {
       (async () => {
         try {
-          const result = await chat.sendMessageStream(currentMessage);
+          const result = await chat.sendMessageStream(currentParts);
           
           // 迭代读取流式响应块
           for await (const chunk of result.stream) {

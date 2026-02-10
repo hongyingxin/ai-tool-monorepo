@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, ChevronDown, Check, Send, User, Bot, Copy, Plus, History, Trash2, MessageCircle, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Sparkles, ChevronDown, Check, Send, User, Bot, Copy, Plus, History, Trash2, MessageCircle, PanelLeftClose, PanelLeftOpen, Image as ImageIcon, X } from 'lucide-react';
 import { chatApi } from './api';
-import type { AIModel, ChatMessage } from './api';
+import type { AIModel, ChatMessage, ChatAttachment } from './api';
 import { chatDB } from './db';
 import type { ChatSession } from './db';
 
@@ -20,10 +20,12 @@ const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const [pendingImage, setPendingImage] = useState<ChatAttachment | null>(null);
   
+  const abortControllerRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   /**
    * 响应式监听：在窗口过小时自动收起侧边栏
@@ -159,13 +161,18 @@ const ChatPage: React.FC = () => {
    */
   const handleSend = async (overrideText?: string) => {
     const text = overrideText || inputText;
-    if (!text.trim() || isLoading || !selectedModel) return;
+    if ((!text.trim() && !pendingImage) || isLoading || !selectedModel) return;
 
-    const userMessage: ChatMessage = { role: 'user', content: text.trim() };
+    const userMessage: ChatMessage = { 
+      role: 'user', 
+      content: text.trim(),
+      attachments: pendingImage ? [pendingImage] : undefined
+    };
     const historyWithUser = [...messages, userMessage];
     
     setMessages(historyWithUser);
     setInputText('');
+    setPendingImage(null);
     setIsLoading(true);
 
     // 添加 AI 响应占位符
@@ -264,6 +271,59 @@ const ChatPage: React.FC = () => {
    */
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+  };
+
+  /**
+   * 将文件转换为 Base64
+   */
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        // 移除 Data URL 前缀 (如 data:image/jpeg;base64,)
+        resolve(base64.split(',')[1]);
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  /**
+   * 处理图片选择
+   */
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const base64 = await fileToBase64(file);
+      setPendingImage({
+        type: 'image',
+        data: base64,
+        mimeType: file.type
+      });
+    }
+    // 重置 input 以便下次选择同一张图
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  /**
+   * 处理剪贴板粘贴图片
+   */
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          const base64 = await fileToBase64(file);
+          setPendingImage({
+            type: 'image',
+            data: base64,
+            mimeType: file.type
+          });
+        }
+      }
+    }
   };
 
   return (
@@ -463,6 +523,24 @@ const ChatPage: React.FC = () => {
                   )}
                   
                   <div className={`flex flex-col space-y-2 md:space-y-3 max-w-[90%] md:max-w-[85%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    {/* 图片附件展示 */}
+                    {msg.attachments && msg.attachments.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-1">
+                        {msg.attachments.map((att, i) => (
+                          att.type === 'image' && (
+                            <div key={i} className="relative group">
+                              <img 
+                                src={`data:${att.mimeType};base64,${att.data}`} 
+                                alt="attachment" 
+                                className="max-w-xs max-h-64 rounded-2xl border border-gray-100 shadow-sm cursor-zoom-in hover:opacity-95 transition-opacity"
+                                onClick={() => window.open(`data:${att.mimeType};base64,${att.data}`)}
+                              />
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    )}
+                    
                     <div className={`px-4 md:px-6 py-3 md:py-4 rounded-2xl md:rounded-[2rem] text-xs md:text-sm leading-relaxed shadow-sm ${
                       msg.role === 'user' 
                         ? 'bg-blue-600 text-white rounded-tr-none' 
@@ -517,12 +595,47 @@ const ChatPage: React.FC = () => {
         {/* Chat Input Area */}
         <div className="p-4 md:p-8 bg-white border-t border-gray-50 pb-24 md:pb-8">
           <div className="max-w-5xl mx-auto relative group">
+            {/* 图片预览区域 */}
+            {pendingImage && (
+              <div className="absolute bottom-full left-0 mb-4 animate-in slide-in-from-bottom-2 duration-300">
+                <div className="relative inline-block">
+                  <img 
+                    src={`data:${pendingImage.mimeType};base64,${pendingImage.data}`} 
+                    className="h-32 w-auto rounded-2xl border-2 border-blue-500 shadow-xl object-cover"
+                    alt="preview"
+                  />
+                  <button 
+                    onClick={() => setPendingImage(null)}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+            
             <div className="absolute inset-0 bg-blue-500/5 blur-xl group-focus-within:bg-blue-500/10 transition-all rounded-[2rem]"></div>
             <div className="relative flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-2xl md:rounded-[2rem] p-2 md:p-3 focus-within:border-blue-500 focus-within:bg-white transition-all shadow-sm">
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="mb-1 p-2 md:p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl md:rounded-2xl transition-all shrink-0"
+                title="上传图片"
+              >
+                <ImageIcon size={20} />
+              </button>
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={handleFileChange}
+              />
+              
               <textarea 
                 ref={textareaRef}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
+                onPaste={handlePaste}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
