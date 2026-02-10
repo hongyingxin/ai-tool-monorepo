@@ -418,7 +418,7 @@ const ChatPage: React.FC = () => {
                 className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                 title="显示侧边栏"
               >
-                <PanelLeftOpen size={20} md:size={22} />
+                <PanelLeftOpen className="w-5 h-5 md:w-[22px] md:h-[22px]" />
               </button>
             )}
             <div className="flex items-center gap-1.5 relative">
@@ -487,7 +487,7 @@ const ChatPage: React.FC = () => {
             {messages.length === 0 ? (
               <div className="min-h-[60vh] flex flex-col items-center justify-center text-center space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 px-4">
                 <div className="w-16 h-16 md:w-24 md:h-24 bg-blue-50 rounded-2xl md:rounded-[2.5rem] flex items-center justify-center text-blue-500 shadow-inner">
-                  <Sparkles size={32} md:size={48} />
+                  <Sparkles className="w-8 h-8 md:w-12 md:h-12" />
                 </div>
                 <div className="max-w-xl">
                   <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-3 tracking-tight">有什么我可以帮您的吗？</h2>
@@ -518,7 +518,7 @@ const ChatPage: React.FC = () => {
                 <div key={idx} className={`flex gap-3 md:gap-6 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
                   {msg.role === 'model' && (
                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100 text-blue-600 shadow-sm">
-                      <Bot size={18} md:size={22} />
+                      <Bot className="w-[18px] h-[18px] md:w-[22px] md:h-[22px]" />
                     </div>
                   )}
                   
@@ -565,7 +565,7 @@ const ChatPage: React.FC = () => {
                             className="p-1.5 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                             title="复制内容"
                           >
-                            <Copy size={14} md:size={16} />
+                            <Copy className="w-3.5 h-3.5 md:w-4 md:h-4" />
                           </button>
                           {idx === messages.length - 1 && !isLoading && (
                             <button 
@@ -573,7 +573,7 @@ const ChatPage: React.FC = () => {
                               className="p-1.5 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                               title="重新生成"
                             >
-                              <Sparkles size={14} md:size={16} />
+                              <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4" />
                             </button>
                           )}
                         </>
@@ -583,7 +583,7 @@ const ChatPage: React.FC = () => {
 
                   {msg.role === 'user' && (
                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-blue-600 flex items-center justify-center shrink-0 text-white shadow-md">
-                      <User size={18} md:size={22} />
+                      <User className="w-[18px] h-[18px] md:w-[22px] md:h-[22px]" />
                     </div>
                   )}
                 </div>
@@ -664,7 +664,7 @@ const ChatPage: React.FC = () => {
                         : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-100 active:scale-95'
                     }`}
                   >
-                    <Send size={18} md:size={20} />
+                    <Send className="w-[18px] h-[18px] md:w-5 md:h-5" />
                   </button>
                 )}
               </div>
@@ -680,4 +680,3 @@ const ChatPage: React.FC = () => {
 };
 
 export default ChatPage;
-

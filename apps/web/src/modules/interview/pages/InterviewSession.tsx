@@ -148,7 +148,7 @@ const InterviewSession: React.FC = () => {
       <div className="bg-slate-50/50 border-b border-slate-100 p-4 md:p-6 flex justify-between items-center backdrop-blur-md">
         <div className="flex items-center gap-3 md:gap-4">
           <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-            <Sparkles size={20} md:size={24} fill="currentColor" />
+            <Sparkles className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" />
           </div>
           <div>
             <h3 className="font-black text-slate-800 tracking-tight text-sm md:text-base">AI 智能面试官</h3>
@@ -167,7 +167,7 @@ const InterviewSession: React.FC = () => {
           onClick={handleFinish}
           className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 bg-white border border-slate-100 text-slate-400 hover:text-red-500 hover:border-red-100 hover:bg-red-50 rounded-xl text-xs md:text-sm font-bold transition-all active:scale-95"
         >
-          <LogOut size={14} md:size={16} />
+          <LogOut className="w-3.5 h-3.5 md:w-4 md:h-4" />
           <span className="hidden xs:inline">结束面试</span>
           <span className="xs:hidden">结束</span>
         </button>
@@ -233,7 +233,7 @@ const InterviewSession: React.FC = () => {
                 : 'bg-white text-slate-400 hover:text-blue-600 border border-slate-100 shadow-slate-100'
             }`}
           >
-            <Mic size={18} md:size={20} />
+            <Mic className="w-[18px] h-[18px] md:w-5 md:h-5" />
           </button>
           <div className="relative flex-1">
             <textarea
@@ -259,7 +259,7 @@ const InterviewSession: React.FC = () => {
                 : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200'
             }`}
           >
-            {loading ? <Loader2 size={18} md:size={20} className="animate-spin" /> : <Send size={18} md:size={20} />}
+            {loading ? <Loader2 className="w-[18px] h-[18px] md:w-5 md:h-5 animate-spin" /> : <Send className="w-[18px] h-[18px] md:w-5 md:h-5" />}
           </button>
         </div>
       </div>

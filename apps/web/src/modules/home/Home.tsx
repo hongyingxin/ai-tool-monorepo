@@ -7,7 +7,8 @@ const tools = [
     id: 'interview',
     title: 'AI 模拟面试',
     desc: '针对不同岗位进行 1:1 深度模拟面试，获取专业反馈和评估报告。',
-    icon: <UserRound className="text-blue-500" size={32} />,
+    Icon: UserRound,
+    iconColor: 'text-blue-500',
     color: 'bg-blue-50',
     path: '/interview'
   },
@@ -15,7 +16,8 @@ const tools = [
     id: 'chat',
     title: 'AI 智能助手',
     desc: '基于 Gemini 2.0 的通用对话助手，回答问题、编写代码或头脑风暴。',
-    icon: <MessageSquareText className="text-blue-500" size={32} />,
+    Icon: MessageSquareText,
+    iconColor: 'text-blue-500',
     color: 'bg-blue-50',
     path: '/chat'
   },
@@ -23,7 +25,8 @@ const tools = [
     id: 'write',
     title: '简历优化',
     desc: '上传简历或输入经历，AI 帮你打磨出更具竞争力的内容。',
-    icon: <FileText className="text-orange-500" size={32} />,
+    Icon: FileText,
+    iconColor: 'text-orange-500',
     color: 'bg-orange-50',
     path: '#'
   },
@@ -31,7 +34,8 @@ const tools = [
     id: 'code',
     title: '代码解释器',
     desc: '深度解析代码逻辑，发现潜在漏洞并提供优化方案。',
-    icon: <Code2 className="text-indigo-500" size={32} />,
+    Icon: Code2,
+    iconColor: 'text-indigo-500',
     color: 'bg-indigo-50',
     path: '#'
   }
@@ -92,13 +96,13 @@ const Home: React.FC = () => {
             >
               <div className="flex items-start justify-between mb-4 md:mb-6">
                 <div className={`w-12 h-12 md:w-16 md:h-16 ${tool.color} rounded-xl md:rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                  {React.cloneElement(tool.icon as React.ReactElement, { size: window.innerWidth < 768 ? 24 : 32 })}
+                  <tool.Icon className={`${tool.iconColor} w-6 h-6 md:w-8 md:h-8`} />
                 </div>
                 {tool.path === '#' ? (
                   <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-gray-400 border border-gray-100 px-2 py-1 rounded-md">即将上线</span>
                 ) : (
                   <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all">
-                    <ArrowRight size={16} md:size={20} />
+                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
                   </div>
                 )}
               </div>
