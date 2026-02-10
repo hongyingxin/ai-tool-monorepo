@@ -5,6 +5,10 @@ import type { AIModel, ChatMessage } from './api';
 import { chatDB } from './db';
 import type { ChatSession } from './db';
 
+/**
+ * 智能助手主页面组件
+ * 包含侧边栏会话管理、模型切换、对话内容展示及输入交互
+ */
 const ChatPage: React.FC = () => {
   const [models, setModels] = useState<AIModel[]>([]);
   const [selectedModel, setSelectedModel] = useState<AIModel | null>(null);
@@ -21,13 +25,16 @@ const ChatPage: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Load models and initial sessions
+  /**
+   * 初始化：获取模型列表及历史会话
+   */
   useEffect(() => {
     const init = async () => {
       try {
         const modelData = await chatApi.getModels();
         setModels(modelData);
         if (modelData.length > 0) {
+          // 默认选中 Gemini 2.0 模型或第一个可用模型
           const preferredModel = modelData.find(m => m.id.includes('2.0')) || modelData[0];
           setSelectedModel(preferredModel);
         }
@@ -41,14 +48,18 @@ const ChatPage: React.FC = () => {
     init();
   }, []);
 
-  // Sync scroll to bottom
+  /**
+   * 自动滚动到底部
+   */
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // Sync textarea height
+  /**
+   * 输入框高度自适应
+   */
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -56,12 +67,19 @@ const ChatPage: React.FC = () => {
     }
   }, [inputText]);
 
+  /**
+   * 开启一个全新的对话会话
+   */
   const createNewSession = () => {
     setCurrentSessionId(null);
     setMessages([]);
     setInputText('');
   };
 
+  /**
+   * 选择并加载历史会话
+   * @param id 会话 ID
+   */
   const selectSession = async (id: string) => {
     const session = await chatDB.getSessionById(id);
     if (session) {
@@ -72,6 +90,9 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  /**
+   * 删除指定的会话
+   */
   const deleteSession = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     await chatDB.deleteSession(id);
@@ -82,6 +103,10 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  /**
+   * 将当前对话状态保存到数据库
+   * @param updatedMessages 更新后的消息列表
+   */
   const saveCurrentSession = async (updatedMessages: ChatMessage[]) => {
     if (!selectedModel) return;
 
@@ -89,9 +114,9 @@ const ChatPage: React.FC = () => {
     let title = '';
 
     if (!sessionId) {
+      // 首次保存，生成新 ID 并提取标题
       sessionId = crypto.randomUUID();
       setCurrentSessionId(sessionId);
-      // Generate title from first message
       const firstMsg = updatedMessages.find(m => m.role === 'user')?.content || '新对话';
       title = firstMsg.length > 20 ? firstMsg.substring(0, 20) + '...' : firstMsg;
     } else {
@@ -113,6 +138,10 @@ const ChatPage: React.FC = () => {
     setSessions(allSessions);
   };
 
+  /**
+   * 发送消息并处理流式响应
+   * @param overrideText 可选的覆盖文本（用于重新生成）
+   */
   const handleSend = async (overrideText?: string) => {
     const text = overrideText || inputText;
     if (!text.trim() || isLoading || !selectedModel) return;
@@ -124,6 +153,7 @@ const ChatPage: React.FC = () => {
     setInputText('');
     setIsLoading(true);
 
+    // 添加 AI 响应占位符
     const modelMessage: ChatMessage = { role: 'model', content: '' };
     const historyWithPlaceholder = [...historyWithUser, modelMessage];
     setMessages(historyWithPlaceholder);
@@ -141,8 +171,7 @@ const ChatPage: React.FC = () => {
             const lastMessage = prev[prev.length - 1];
             if (lastMessage.role === 'model') {
               const updatedModelMsg = { ...lastMessage, content: fullContent, isError: false };
-              const newHistory = [...prev.slice(0, -1), updatedModelMsg];
-              return newHistory;
+              return [...prev.slice(0, -1), updatedModelMsg];
             }
             return prev;
           });
@@ -156,28 +185,35 @@ const ChatPage: React.FC = () => {
               ...prev.slice(0, -1),
               { ...lastMessage, content: errorMsg, isError: true }
             ];
-            // Save even if error? Maybe not the best, but keeps context
             saveCurrentSession(updatedHistory);
             return updatedHistory;
           });
           setIsLoading(false);
-        }
+        },
+        abortControllerRef.current.signal
       );
       
-      // Successfully finished stream
+      // 流式结束后保存完整会话
       setMessages(prev => {
         saveCurrentSession(prev);
         return prev;
       });
 
     } catch (error: any) {
-      console.error('Chat error catch:', error);
+      if (error.name === 'AbortError') {
+        console.log('Chat generation aborted');
+      } else {
+        console.error('Chat error catch:', error);
+      }
     } finally {
       setIsLoading(false);
       abortControllerRef.current = null;
     }
   };
 
+  /**
+   * 中断正在生成的 AI 响应
+   */
   const handleStop = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -185,10 +221,12 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  /**
+   * 重新生成上一次的 AI 回复
+   */
   const handleRegenerate = () => {
     if (messages.length < 1 || isLoading) return;
     
-    // 兼容旧版浏览器/环境的 findLastIndex
     let lastUserIdx = -1;
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role === 'user') {
@@ -206,9 +244,11 @@ const ChatPage: React.FC = () => {
     handleSend(lastUserMessage.content);
   };
 
+  /**
+   * 复制文本到剪贴板
+   */
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    // TODO: Add toast notification
   };
 
   return (
@@ -223,14 +263,14 @@ const ChatPage: React.FC = () => {
           <div className="p-6 flex items-center gap-3">
             <button 
               onClick={createNewSession}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-white border border-emerald-100 rounded-2xl font-bold text-emerald-700 hover:bg-emerald-50 hover:border-emerald-200 transition-all shadow-sm active:scale-95"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-white border border-blue-100 rounded-2xl font-bold text-blue-700 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm active:scale-95"
             >
               <Plus size={18} />
               开启新对话
             </button>
             <button 
               onClick={() => setIsSidebarOpen(false)}
-              className="p-3 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all shrink-0"
+              className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all shrink-0"
               title="收起侧边栏"
             >
               <PanelLeftClose size={20} />
@@ -255,11 +295,11 @@ const ChatPage: React.FC = () => {
                   onClick={() => selectSession(session.id)}
                   className={`group relative flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer transition-all ${
                     currentSessionId === session.id 
-                      ? 'bg-emerald-50/50 text-emerald-700 border-l-4 border-l-emerald-500' 
+                      ? 'bg-blue-50/50 text-blue-700 border-l-4 border-l-blue-500' 
                       : 'text-gray-500 hover:bg-gray-100/50 hover:text-gray-700'
                   }`}
                 >
-                  <MessageCircle size={18} className={currentSessionId === session.id ? 'text-emerald-500' : 'text-gray-400'} />
+                  <MessageCircle size={18} className={currentSessionId === session.id ? 'text-blue-500' : 'text-gray-400'} />
                   <span className={`flex-1 text-sm font-semibold truncate pr-6 ${currentSessionId === session.id ? '' : 'font-medium'}`}>
                     {session.title}
                   </span>
@@ -284,7 +324,7 @@ const ChatPage: React.FC = () => {
             {!isSidebarOpen && (
               <button 
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-2.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all mr-2"
+                className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all mr-2"
                 title="显示侧边栏"
               >
                 <PanelLeftOpen size={22} />
@@ -296,10 +336,10 @@ const ChatPage: React.FC = () => {
                 className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 rounded-xl transition-colors group"
               >
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-xs font-bold text-gray-600 group-hover:text-emerald-600 transition-colors uppercase tracking-wider">
+                <span className="text-xs font-bold text-gray-600 group-hover:text-blue-600 transition-colors uppercase tracking-wider">
                   {selectedModel?.displayName || '正在获取模型...'}
                 </span>
-                <ChevronDown size={14} className={`text-gray-400 group-hover:text-emerald-600 transition-transform ${isModelMenuOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-gray-400 group-hover:text-blue-600 transition-transform ${isModelMenuOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {/* Model Dropdown */}
@@ -318,13 +358,13 @@ const ChatPage: React.FC = () => {
                             setSelectedModel(model);
                             setIsModelMenuOpen(false);
                           }}
-                          className="w-full px-4 py-3.5 flex items-start gap-3 hover:bg-emerald-50 transition-colors group text-left"
+                          className="w-full px-4 py-3.5 flex items-start gap-3 hover:bg-blue-50 transition-colors group text-left"
                         >
-                          <div className={`mt-0.5 rounded-full p-1 ${selectedModel?.id === model.id ? 'bg-emerald-100 text-emerald-600' : 'text-transparent group-hover:text-gray-200'}`}>
+                          <div className={`mt-0.5 rounded-full p-1 ${selectedModel?.id === model.id ? 'bg-blue-100 text-blue-600' : 'text-transparent group-hover:text-gray-200'}`}>
                             <Check size={12} />
                           </div>
                           <div>
-                            <div className={`text-sm font-bold ${selectedModel?.id === model.id ? 'text-emerald-700' : 'text-gray-700'}`}>
+                            <div className={`text-sm font-bold ${selectedModel?.id === model.id ? 'text-blue-700' : 'text-gray-700'}`}>
                               {model.displayName}
                             </div>
                             {model.description && (
@@ -355,7 +395,7 @@ const ChatPage: React.FC = () => {
           <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
             {messages.length === 0 ? (
               <div className="h-[60vh] flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                <div className="w-24 h-24 bg-emerald-50 rounded-[2.5rem] flex items-center justify-center text-emerald-500 shadow-inner">
+                <div className="w-24 h-24 bg-blue-50 rounded-[2.5rem] flex items-center justify-center text-blue-500 shadow-inner">
                   <Sparkles size={48} />
                 </div>
                 <div className="max-w-xl">
@@ -373,7 +413,7 @@ const ChatPage: React.FC = () => {
                       <button 
                         key={i}
                         onClick={() => setInputText(hint.text)}
-                        className="p-5 bg-white border border-gray-100 rounded-2xl text-sm text-gray-600 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all text-left font-bold shadow-sm group"
+                        className="p-5 bg-white border border-gray-100 rounded-2xl text-sm text-gray-600 hover:border-blue-200 hover:bg-blue-50/30 transition-all text-left font-bold shadow-sm group"
                       >
                         <span className="text-xl mb-2 block group-hover:scale-110 transition-transform">{hint.icon}</span>
                         {hint.text}
@@ -386,7 +426,7 @@ const ChatPage: React.FC = () => {
               messages.map((msg, idx) => (
                 <div key={idx} className={`flex gap-6 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
                   {msg.role === 'model' && (
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 border border-emerald-100 text-emerald-600 shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100 text-blue-600 shadow-sm">
                       <Bot size={22} />
                     </div>
                   )}
@@ -394,16 +434,16 @@ const ChatPage: React.FC = () => {
                   <div className={`flex flex-col space-y-3 max-w-[85%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                     <div className={`px-6 py-4 rounded-[2rem] text-sm leading-relaxed shadow-sm ${
                       msg.role === 'user' 
-                        ? 'bg-emerald-600 text-white rounded-tr-none' 
+                        ? 'bg-blue-600 text-white rounded-tr-none' 
                         : msg.isError
                           ? 'bg-red-50 border border-red-100 text-red-600 rounded-tl-none'
                           : 'bg-gray-50 border border-gray-100 text-gray-800 rounded-tl-none'
                     }`}>
                       <div className="whitespace-pre-wrap font-medium">{msg.content || (isLoading && idx === messages.length - 1 ? (
                         <div className="flex gap-1.5 py-2">
-                          <div className="w-2 h-2 bg-emerald-300 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-emerald-300 rounded-full animate-bounce [animation-delay:-.3s]"></div>
-                          <div className="w-2 h-2 bg-emerald-300 rounded-full animate-bounce [animation-delay:-.5s]"></div>
+                          <div className="w-2 h-2 bg-blue-300 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-blue-300 rounded-full animate-bounce [animation-delay:-.3s]"></div>
+                          <div className="w-2 h-2 bg-blue-300 rounded-full animate-bounce [animation-delay:-.5s]"></div>
                         </div>
                       ) : null)}</div>
                     </div>
@@ -413,7 +453,7 @@ const ChatPage: React.FC = () => {
                         <>
                           <button 
                             onClick={() => copyToClipboard(msg.content)}
-                            className="p-2 text-gray-300 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all"
+                            className="p-2 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                             title="复制内容"
                           >
                             <Copy size={16} />
@@ -421,7 +461,7 @@ const ChatPage: React.FC = () => {
                           {idx === messages.length - 1 && !isLoading && (
                             <button 
                               onClick={handleRegenerate}
-                              className="p-2 text-gray-300 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all"
+                              className="p-2 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                               title="重新生成"
                             >
                               <Sparkles size={16} />
@@ -433,7 +473,7 @@ const ChatPage: React.FC = () => {
                   </div>
 
                   {msg.role === 'user' && (
-                    <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center shrink-0 text-white shadow-md">
+                    <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 text-white shadow-md">
                       <User size={22} />
                     </div>
                   )}
@@ -446,8 +486,8 @@ const ChatPage: React.FC = () => {
         {/* Chat Input Area */}
         <div className="p-8 bg-white border-t border-gray-50">
           <div className="max-w-5xl mx-auto relative group">
-            <div className="absolute inset-0 bg-emerald-500/5 blur-xl group-focus-within:bg-emerald-500/10 transition-all rounded-[2rem]"></div>
-            <div className="relative flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-[2rem] p-3 focus-within:border-emerald-500 focus-within:bg-white transition-all shadow-sm">
+            <div className="absolute inset-0 bg-blue-500/5 blur-xl group-focus-within:bg-blue-500/10 transition-all rounded-[2rem]"></div>
+            <div className="relative flex items-end gap-2 bg-gray-50 border border-gray-200 rounded-[2rem] p-3 focus-within:border-blue-500 focus-within:bg-white transition-all shadow-sm">
               <textarea 
                 ref={textareaRef}
                 value={inputText}
@@ -477,7 +517,7 @@ const ChatPage: React.FC = () => {
                     className={`w-11 h-11 rounded-2xl transition-all flex items-center justify-center ${
                       !inputText.trim()
                         ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                        : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-100 active:scale-95'
+                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-100 active:scale-95'
                     }`}
                   >
                     <Send size={20} />

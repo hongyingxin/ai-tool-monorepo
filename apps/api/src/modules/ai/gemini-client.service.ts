@@ -2,12 +2,19 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI, GenerativeModel, ModelParams, RequestOptions } from '@google/generative-ai';
 
+/**
+ * Gemini 客户端服务
+ * 负责与 Google Generative AI SDK 交互，管理 API Key、Base URL 及模型实例化
+ */
 @Injectable()
 export class GeminiClientService implements OnModuleInit {
   private genAI!: GoogleGenerativeAI;
 
   constructor(private configService: ConfigService) {}
 
+  /**
+   * 模块初始化时检查并初始化 SDK
+   */
   onModuleInit() {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (!apiKey) {
@@ -16,6 +23,11 @@ export class GeminiClientService implements OnModuleInit {
     this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
+  /**
+   * 获取指定的生成模型实例
+   * @param params 模型参数 (如 model ID)
+   * @param options 请求配置 (如 apiVersion)
+   */
   getModel(params: ModelParams, options?: RequestOptions): GenerativeModel {
     const baseUrl = this.configService.get<string>('GEMINI_BASE_URL');
     const apiVersion = this.configService.get<string>('GEMINI_API_VERSION') || 'v1beta';
@@ -30,10 +42,17 @@ export class GeminiClientService implements OnModuleInit {
     );
   }
 
+  /**
+   * 获取底层 SDK 实例
+   */
   getSdk(): GoogleGenerativeAI {
     return this.genAI;
   }
 
+  /**
+   * 列出支持的 AI 模型
+   * 包含过滤逻辑，只保留高性能且支持 generateContent 的 Flash 系列模型
+   */
   async listModels() {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     const baseUrl = this.configService.get<string>('GEMINI_BASE_URL') || 'https://generativelanguage.googleapis.com';
@@ -46,15 +65,16 @@ export class GeminiClientService implements OnModuleInit {
         throw new Error(`Failed to fetch models: ${response.statusText}`);
       }
       const data = await response.json();
-      // 过滤逻辑：
-      // 1. 支持 generateContent
-      // 2. 包含 'flash' (Token 消耗低，响应快)
-      // 3. 只保留 2.x 和 3.x 系列
+      
+      // 过滤策略：
+      // 1. 必须支持 generateContent 方法
+      // 2. 属于 flash 系列（响应快、性价比高）
+      // 3. 针对性保留 2.x 和 3.x 版本
       return data.models
         .filter((m: any) => 
           m.supportedGenerationMethods.includes('generateContent') && 
           m.name.includes('flash') &&
-          (m.name.includes('2.5') || m.name.includes('3.0'))
+          (m.name.includes('2.0') || m.name.includes('2.5') || m.name.includes('3.0'))
         )
         .map((m: any) => ({
           name: m.name,
@@ -64,7 +84,7 @@ export class GeminiClientService implements OnModuleInit {
         }));
     } catch (error) {
       console.error('Error listing models:', error);
-      // Fallback 列表，仅保留高性价比的 Flash 模型 (2.0 及更高)
+      // 网络或权限失败时的兜底方案
       return [
         { id: 'gemini-2.0-flash', displayName: 'Gemini 2.0 Flash', description: '下一代极速模型，性能与速度的最佳平衡' },
         { id: 'gemini-2.0-flash-exp', displayName: 'Gemini 2.0 Flash (Experimental)', description: '实验性的极速模型' },
