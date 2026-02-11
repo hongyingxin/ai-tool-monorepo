@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -7,10 +7,13 @@ import {
   Settings as SettingsIcon,
   Sparkles,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  Info
 } from 'lucide-react';
+import VersionDrawer from './VersionDrawer';
 
 const Layout: React.FC = () => {
+  const [isVersionOpen, setIsVersionOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
@@ -74,10 +77,16 @@ const Layout: React.FC = () => {
         </nav>
 
         <div className="p-6">
-          <div className="bg-slate-50 rounded-[1.5rem] p-4 border border-slate-100">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Current Version</p>
-            <p className="text-xs font-bold text-slate-600">v1.0.0 Personal</p>
-          </div>
+          <button 
+            onClick={() => setIsVersionOpen(true)}
+            className="w-full bg-slate-50 hover:bg-blue-50/50 rounded-[1.5rem] p-4 border border-slate-100 transition-all text-left group"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-blue-500">Current Version</p>
+              <Info size={12} className="text-slate-300 group-hover:text-blue-400" />
+            </div>
+            <p className="text-xs font-bold text-slate-600 group-hover:text-blue-700">v1.2.0 Personal</p>
+          </button>
         </div>
       </aside>
 
@@ -102,6 +111,12 @@ const Layout: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsVersionOpen(true)}
+              className="md:hidden p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+            >
+              <Info size={18} />
+            </button>
             <div className="hidden sm:block text-right mr-2">
               <p className="text-[10px] font-bold text-slate-400 uppercase">System Status</p>
               <p className="text-xs font-bold text-green-500 flex items-center justify-end gap-1.5">
@@ -145,6 +160,12 @@ const Layout: React.FC = () => {
           </NavLink>
         ))}
       </nav>
+
+      {/* Global Version Drawer */}
+      <VersionDrawer 
+        isOpen={isVersionOpen} 
+        onClose={() => setIsVersionOpen(false)} 
+      />
     </div>
   );
 };

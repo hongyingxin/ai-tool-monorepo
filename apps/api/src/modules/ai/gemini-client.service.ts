@@ -126,7 +126,8 @@ export class GeminiClientService implements OnModuleInit {
           // 如果是用户自定义 Key，放宽限制
           if (customApiKey) {
             // 只要不是过于陈旧的版本（如 1.0）都展示，包含 pro, flash, exp 等
-            return !m.name.includes('gemini-1.0');
+            // return !m.name.includes('gemini-1.0');
+            return true;
           }
 
           // 如果是系统默认 Key，保持严格过滤以节省成本并保证速度
