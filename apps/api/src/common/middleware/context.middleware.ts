@@ -6,8 +6,9 @@ import { requestContext } from '../context/request-context';
 export class ContextMiddleware implements NestMiddleware {
   use(req: Request, _res: Response, next: NextFunction) {
     const apiKey = req.headers['x-gemini-api-key'] as string;
+    const modelId = req.headers['x-gemini-model-id'] as string;
     
-    requestContext.run({ apiKey }, () => {
+    requestContext.run({ apiKey, modelId }, () => {
       next();
     });
   }

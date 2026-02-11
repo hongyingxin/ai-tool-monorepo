@@ -8,12 +8,17 @@ interface RequestOptions extends RequestInit {
 
 async function request<T>(endpoint: string, { data, ...customConfig }: RequestOptions = {}): Promise<T> {
   const customKey = localStorage.getItem('gemini_api_key');
+  const customModel = localStorage.getItem('selected_model');
   const headers: Record<string, string> = { 
     'Content-Type': 'application/json' 
   };
   
   if (customKey) {
     headers['x-gemini-api-key'] = customKey;
+  }
+
+  if (customModel) {
+    headers['x-gemini-model-id'] = customModel;
   }
   
   const config: RequestInit = {
@@ -60,6 +65,7 @@ export const client = {
 
   stream: async (endpoint: string, data: any, onMessage: (text: string) => void, onError?: (err: any) => void, signal?: AbortSignal) => {
     const customKey = localStorage.getItem('gemini_api_key');
+    const customModel = localStorage.getItem('selected_model');
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'text/event-stream',
@@ -67,6 +73,10 @@ export const client = {
 
     if (customKey) {
       headers['x-gemini-api-key'] = customKey;
+    }
+
+    if (customModel) {
+      headers['x-gemini-model-id'] = customModel;
     }
 
     try {

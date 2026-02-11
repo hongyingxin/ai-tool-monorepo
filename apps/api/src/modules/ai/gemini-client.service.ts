@@ -89,12 +89,22 @@ export class GeminiClientService implements OnModuleInit {
   }
 
   /**
+   * 获取当前请求上下文中偏好的模型 ID
+   * @param fallback 兜底模型 ID
+   */
+  getPreferredModelId(fallback = 'gemini-2.5-flash'): string {
+    const context = requestContext.getStore();
+    return context?.modelId || fallback;
+  }
+
+  /**
    * 列出支持的 AI 模型
    * 包含过滤逻辑，只保留高性能且支持 generateContent 的 Flash 系列模型
    */
   async listModels() {
     const context = requestContext.getStore();
-    const apiKey = context?.apiKey || this.configService.get<string>('GEMINI_API_KEY');
+    const customApiKey = context?.apiKey;
+    const apiKey = customApiKey || this.configService.get<string>('GEMINI_API_KEY');
     
     const baseUrl = this.configService.get<string>('GEMINI_BASE_URL') || 'https://generativelanguage.googleapis.com';
     const apiVersion = this.configService.get<string>('GEMINI_API_VERSION') || 'v1beta';
@@ -107,16 +117,24 @@ export class GeminiClientService implements OnModuleInit {
       }
       const data = await response.json();
       
-      // 过滤策略：
-      // 1. 必须支持 generateContent 方法
-      // 2. 属于 flash 系列（响应快、性价比高）
-      // 3. 针对性保留 2.x 和 3.x 版本
       return data.models
-        .filter((m: any) => 
-          m.supportedGenerationMethods.includes('generateContent') && 
-          m.name.includes('flash') &&
-          (m.name.includes('2') || m.name.includes('2.5') || m.name.includes('3'))
-        )
+        .filter((m: any) => {
+          // 基础条件：必须支持文本生成
+          const supportsChat = m.supportedGenerationMethods.includes('generateContent');
+          if (!supportsChat) return false;
+
+          // 如果是用户自定义 Key，放宽限制
+          if (customApiKey) {
+            // 只要不是过于陈旧的版本（如 1.0）都展示，包含 pro, flash, exp 等
+            return !m.name.includes('gemini-1.0');
+          }
+
+          // 如果是系统默认 Key，保持严格过滤以节省成本并保证速度
+          return (
+            m.name.includes('flash') && 
+            (m.name.includes('2') || m.name.includes('2.5') || m.name.includes('3'))
+          );
+        })
         .map((m: any) => ({
           name: m.name,
           id: m.name.split('/')[1],

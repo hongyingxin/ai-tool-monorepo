@@ -22,9 +22,11 @@ export class InterviewService {
 - 额外信息：${config.customDescription}
 `;
 
+    const modelId = this.geminiClient.getPreferredModelId('gemini-2.5-flash');
+
     return this.geminiClient.getModel(
       {
-        model: 'gemini-2.5-flash',
+        model: modelId,
         systemInstruction: {
           role: 'system',
           parts: [{ text: systemInstruction }],
@@ -94,9 +96,11 @@ export class InterviewService {
       .map((m) => `${m.role === 'user' ? '候选人' : '面试官'}: ${m.text}`)
       .join('\n');
 
+    const modelId = this.geminiClient.getPreferredModelId('gemini-2.0-flash');
+
     const evaluationModel = this.geminiClient.getModel(
       {
-        model: 'gemini-2.5-flash',
+        model: modelId,
         systemInstruction: {
           role: 'system',
           parts: [{ text: EVALUATION_SYSTEM_PROMPT }],
@@ -151,9 +155,11 @@ ${historyText}
       .map((m) => `${m.role === 'user' ? '候选人' : '面试官'}: ${m.text}`)
       .join('\n');
 
+    const modelId = this.geminiClient.getPreferredModelId('gemini-2.0-flash');
+
     const evaluationModel = this.geminiClient.getModel(
       {
-        model: 'gemini-2.5-flash',
+        model: modelId,
         systemInstruction: {
           role: 'system',
           parts: [{ text: EVALUATION_SYSTEM_PROMPT }],

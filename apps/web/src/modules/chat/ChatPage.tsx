@@ -50,9 +50,14 @@ const ChatPage: React.FC = () => {
       try {
         const modelData = await chatApi.getModels();
         setModels(modelData);
+        
+        // 优先级：1. 历史会话模型 2. localStorage 3. 2.0 Flash 4. 第一个
         if (modelData.length > 0) {
-          // 默认选中 Gemini 2.0 模型或第一个可用模型
-          const preferredModel = modelData.find(m => m.id.includes('2.0')) || modelData[0];
+          const storedModelId = localStorage.getItem('selected_model');
+          const preferredModel = 
+            modelData.find(m => m.id === storedModelId) ||
+            modelData.find(m => m.id.includes('2.0')) || 
+            modelData[0];
           setSelectedModel(preferredModel);
         }
 
@@ -447,6 +452,7 @@ const ChatPage: React.FC = () => {
                           key={model.id}
                           onClick={() => {
                             setSelectedModel(model);
+                            localStorage.setItem('selected_model', model.id); // 同步到全局配置
                             setIsModelMenuOpen(false);
                           }}
                           className="w-full px-4 py-3 flex items-start gap-3 hover:bg-blue-50 transition-colors group text-left"
