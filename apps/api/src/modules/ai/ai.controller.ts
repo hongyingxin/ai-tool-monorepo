@@ -42,6 +42,14 @@ export class AiController {
   constructor(private readonly geminiClient: GeminiClientService) {}
 
   /**
+   * 验证用户提供的 API Key
+   */
+  @Post('validate-key')
+  async validateKey(@Body('key') key: string) {
+    return this.geminiClient.validateKey(key);
+  }
+
+  /**
    * 获取支持的 AI 模型列表
    */
   @Get('models')

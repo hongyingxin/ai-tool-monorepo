@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI, GenerativeModel, ModelParams, RequestOptions } from '@google/generative-ai';
+import { requestContext } from '../../common/context/request-context';
 
 /**
  * Gemini 客户端服务
@@ -8,7 +9,7 @@ import { GoogleGenerativeAI, GenerativeModel, ModelParams, RequestOptions } from
  */
 @Injectable()
 export class GeminiClientService implements OnModuleInit {
-  private genAI!: GoogleGenerativeAI;
+  private defaultGenAI!: GoogleGenerativeAI;
 
   constructor(private configService: ConfigService) {}
 
@@ -20,7 +21,45 @@ export class GeminiClientService implements OnModuleInit {
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY is not defined in environment variables');
     }
-    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.defaultGenAI = new GoogleGenerativeAI(apiKey);
+  }
+
+  /**
+   * 内部私有方法：获取当前请求应使用的客户端
+   */
+  private getSdkInstance(): GoogleGenerativeAI {
+    const context = requestContext.getStore();
+    const customApiKey = context?.apiKey;
+    console.log('用户自定义API Key:', customApiKey);
+
+    if (customApiKey) {
+      return new GoogleGenerativeAI(customApiKey);
+    }
+    return this.defaultGenAI;
+  }
+
+  /**
+   * 验证 API Key 是否有效
+   * @param apiKey 待验证的 API Key
+   */
+  async validateKey(apiKey: string): Promise<{ success: boolean; message?: string }> {
+    const baseUrl = this.configService.get<string>('GEMINI_BASE_URL') || 'https://generativelanguage.googleapis.com';
+    const apiVersion = this.configService.get<string>('GEMINI_API_VERSION') || 'v1beta';
+    const url = `${baseUrl}/${apiVersion}/models?key=${apiKey}`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+      }
+      return { success: true };
+    } catch (error: any) {
+      return { 
+        success: false, 
+        message: error.message || 'API Key 验证失败，请检查 Key 是否正确或网络是否连通' 
+      };
+    }
   }
 
   /**
@@ -31,8 +70,8 @@ export class GeminiClientService implements OnModuleInit {
   getModel(params: ModelParams, options?: RequestOptions): GenerativeModel {
     const baseUrl = this.configService.get<string>('GEMINI_BASE_URL');
     const apiVersion = this.configService.get<string>('GEMINI_API_VERSION') || 'v1beta';
-    
-    return this.genAI.getGenerativeModel(
+    const sdk = this.getSdkInstance();
+    return sdk.getGenerativeModel(
       params,
       {
         baseUrl: baseUrl || undefined,
@@ -46,7 +85,7 @@ export class GeminiClientService implements OnModuleInit {
    * 获取底层 SDK 实例
    */
   getSdk(): GoogleGenerativeAI {
-    return this.genAI;
+    return this.getSdkInstance();
   }
 
   /**
@@ -54,7 +93,9 @@ export class GeminiClientService implements OnModuleInit {
    * 包含过滤逻辑，只保留高性能且支持 generateContent 的 Flash 系列模型
    */
   async listModels() {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
+    const context = requestContext.getStore();
+    const apiKey = context?.apiKey || this.configService.get<string>('GEMINI_API_KEY');
+    
     const baseUrl = this.configService.get<string>('GEMINI_BASE_URL') || 'https://generativelanguage.googleapis.com';
     const apiVersion = this.configService.get<string>('GEMINI_API_VERSION') || 'v1beta';
 

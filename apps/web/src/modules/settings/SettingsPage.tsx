@@ -1,7 +1,51 @@
-import React from 'react';
-import { Settings as SettingsIcon, ShieldCheck, Cpu, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Settings as SettingsIcon, ShieldCheck, Cpu, Zap, Check, Loader2, AlertCircle } from 'lucide-react';
+import { client } from '../../shared/api/client';
 
 const SettingsPage: React.FC = () => {
+  const [apiKey, setApiKey] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    const savedKey = localStorage.getItem('gemini_api_key');
+    if (savedKey) {
+      setApiKey(savedKey);
+    }
+  }, []);
+
+  const handleSave = async () => {
+    if (!apiKey.trim()) {
+      localStorage.removeItem('gemini_api_key');
+      setStatus('success');
+      setTimeout(() => setStatus('idle'), 3000);
+      return;
+    }
+
+    setIsSaving(true);
+    setStatus('idle');
+    setErrorMsg('');
+
+    try {
+      const result = await client.post<{ success: boolean; message?: string }>('/ai/validate-key', { key: apiKey });
+      
+      if (result.success) {
+        localStorage.setItem('gemini_api_key', apiKey);
+        setStatus('success');
+        setTimeout(() => setStatus('idle'), 3000);
+      } else {
+        setStatus('error');
+        setErrorMsg(result.message || 'Key 验证失败');
+      }
+    } catch (err: any) {
+      setStatus('error');
+      setErrorMsg(err.message || '网络请求失败');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center gap-4 mb-10">
@@ -27,17 +71,47 @@ const SettingsPage: React.FC = () => {
               <label className="block text-sm font-bold text-gray-700 mb-2">Gemini API Key</label>
               <div className="flex gap-3">
                 <input 
-                  type="password" 
                   placeholder="请输入您的 Google Gemini API Key"
-                  className="flex-1 px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono"
-                  defaultValue="••••••••••••••••"
+                  className={`flex-1 px-5 py-4 bg-gray-50 border rounded-2xl focus:ring-2 outline-none transition-all font-mono ${
+                    status === 'error' ? 'border-red-200 focus:ring-red-500' : 'border-gray-100 focus:ring-blue-500'
+                  }`}
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
                 />
-                <button className="bg-blue-600 text-white px-6 py-4 rounded-2xl font-bold hover:bg-blue-700 transition">
-                  保存
+                <button 
+                  onClick={handleSave}
+                  disabled={isSaving || !apiKey.trim()}
+                  className={`px-8 py-4 rounded-2xl font-bold transition flex items-center gap-2 min-w-[120px] justify-center ${
+                    status === 'success' 
+                      ? 'bg-green-500 text-white' 
+                      : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                  }`}
+                >
+                  {isSaving ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : status === 'success' ? (
+                    <Check size={20} />
+                  ) : (
+                    '验证并保存'
+                  )}
                 </button>
               </div>
+              
+              {status === 'error' && (
+                <div className="mt-3 flex items-center gap-2 text-red-500 text-sm font-medium animate-in fade-in slide-in-from-top-1">
+                  <AlertCircle size={16} />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
+              {status === 'success' && (
+                <p className="mt-3 text-sm text-green-600 font-medium animate-in fade-in">
+                  配置已保存，已切换至您的专属 API Key。
+                </p>
+              )}
+
               <p className="mt-3 text-xs text-gray-400">
-                您的 API Key 将仅保存在本地浏览器缓存中，不会上传到我们的服务器。
+                您的 API Key 将仅保存在本地浏览器缓存中，不会上传到我们的服务器。如果不填写，将使用系统默认 Key（有额度限制）。
               </p>
             </div>
           </div>

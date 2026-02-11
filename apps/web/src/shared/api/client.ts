@@ -7,7 +7,14 @@ interface RequestOptions extends RequestInit {
 }
 
 async function request<T>(endpoint: string, { data, ...customConfig }: RequestOptions = {}): Promise<T> {
-  const headers = { 'Content-Type': 'application/json' };
+  const customKey = localStorage.getItem('gemini_api_key');
+  const headers: Record<string, string> = { 
+    'Content-Type': 'application/json' 
+  };
+  
+  if (customKey) {
+    headers['x-gemini-api-key'] = customKey;
+  }
   
   const config: RequestInit = {
     method: data ? 'POST' : 'GET',
@@ -52,13 +59,20 @@ export const client = {
     request<T>(endpoint, { ...config, method: 'DELETE' }),
 
   stream: async (endpoint: string, data: any, onMessage: (text: string) => void, onError?: (err: any) => void, signal?: AbortSignal) => {
+    const customKey = localStorage.getItem('gemini_api_key');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
+    };
+
+    if (customKey) {
+      headers['x-gemini-api-key'] = customKey;
+    }
+
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'text/event-stream',
-        },
+        headers,
         body: JSON.stringify(data),
         signal,
       });
