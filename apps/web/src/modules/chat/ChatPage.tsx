@@ -4,6 +4,7 @@ import { chatApi } from './api';
 import type { AIModel, ChatMessage, ChatAttachment } from './api';
 import { chatDB } from './db';
 import type { ChatSession } from './db';
+import Markdown from '../../shared/components/Markdown';
 
 /**
  * 智能助手主页面组件
@@ -554,13 +555,23 @@ const ChatPage: React.FC = () => {
                           ? 'bg-red-50 border border-red-100 text-red-600 rounded-tl-none'
                           : 'bg-gray-50 border border-gray-100 text-gray-800 rounded-tl-none'
                     }`}>
-                      <div className="whitespace-pre-wrap font-medium">{msg.content || (isLoading && idx === messages.length - 1 ? (
-                        <div className="flex gap-1 py-1.5">
-                          <div className="w-1.5 h-1.5 bg-blue-300 rounded-full animate-bounce"></div>
-                          <div className="w-1.5 h-1.5 bg-blue-300 rounded-full animate-bounce [animation-delay:-.3s]"></div>
-                          <div className="w-1.5 h-1.5 bg-blue-300 rounded-full animate-bounce [animation-delay:-.5s]"></div>
+                      {msg.role === 'user' ? (
+                        <div className="whitespace-pre-wrap font-medium">{msg.content}</div>
+                      ) : (
+                        <div className="font-medium">
+                          {msg.content ? (
+                            <Markdown content={msg.content} />
+                          ) : (
+                            isLoading && idx === messages.length - 1 && (
+                              <div className="flex gap-1 py-1.5">
+                                <div className="w-1.5 h-1.5 bg-blue-300 rounded-full animate-bounce"></div>
+                                <div className="w-1.5 h-1.5 bg-blue-300 rounded-full animate-bounce [animation-delay:-.3s]"></div>
+                                <div className="w-1.5 h-1.5 bg-blue-300 rounded-full animate-bounce [animation-delay:-.5s]"></div>
+                              </div>
+                            )
+                          )}
                         </div>
-                      ) : null)}</div>
+                      )}
                     </div>
                     
                     <div className="flex items-center gap-2 md:gap-3 px-1 md:px-2">

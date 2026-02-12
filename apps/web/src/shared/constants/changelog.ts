@@ -17,15 +17,15 @@ export const CHANGELOG: VersionRecord[] = [
     status: 'planned',
     items: [
       { type: 'planned', content: '移动端适配优化' },
-      { type: 'planned', content: '离线缓存支持Server-Worker' },
-      { type: 'planned', content: '智能助手会话支持Markdown和代码高亮' },
+      { type: 'planned', content: '离线缓存支持 Server-Worker' },
     ],
   },
   {
     version: 'v1.2.0',
-    date: '2026-02-11',
+    date: '2026-02-12',
     status: 'completed',
     items: [
+      { type: 'feature', content: '智能助手支持 Markdown 解析与代码语法高亮' },
       { type: 'feature', content: '支持用户自定义 Gemini API Key' },
       { type: 'feature', content: '支持用户自定义模型选择，并实现本地持久化缓存' },
       { type: 'optimization', content: '后端架构升级：基于 AsyncLocalStorage 实现请求上下文隔离' },
