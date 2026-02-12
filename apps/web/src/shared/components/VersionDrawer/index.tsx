@@ -1,6 +1,6 @@
 import React from 'react';
-import { X, Zap, Sparkles, CheckCircle2, Circle, Rocket } from 'lucide-react';
-import { CHANGELOG, type VersionRecord } from '../../constants/changelog';
+import { X, CheckCircle2, Circle, Rocket } from 'lucide-react';
+import { CHANGELOG, } from '../../constants/changelog';
 
 interface VersionDrawerProps {
   isOpen: boolean;
