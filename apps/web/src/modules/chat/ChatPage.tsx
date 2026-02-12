@@ -529,7 +529,7 @@ const ChatPage: React.FC = () => {
                     </div>
                   )}
                   
-                  <div className={`flex flex-col space-y-2 md:space-y-3 max-w-[90%] md:max-w-[85%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                  <div className={`flex flex-col space-y-2 md:space-y-3 max-w-[90%] md:max-w-[85%] min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                     {/* 图片附件展示 */}
                     {msg.attachments && msg.attachments.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-1">
@@ -548,7 +548,7 @@ const ChatPage: React.FC = () => {
                       </div>
                     )}
                     
-                    <div className={`px-4 md:px-6 py-3 md:py-4 rounded-2xl md:rounded-[2rem] text-xs md:text-sm leading-relaxed shadow-sm ${
+                    <div className={`px-4 md:px-6 py-3 md:py-4 rounded-2xl md:rounded-[2rem] text-xs md:text-sm leading-relaxed shadow-sm overflow-hidden w-full ${
                       msg.role === 'user' 
                         ? 'bg-blue-600 text-white rounded-tr-none' 
                         : msg.isError
