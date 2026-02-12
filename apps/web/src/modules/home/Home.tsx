@@ -51,9 +51,9 @@ const Home: React.FC = () => {
       <div className="absolute top-1/2 -left-24 w-72 h-72 bg-emerald-400/5 rounded-full blur-[80px] pointer-events-none"></div>
 
       {/* Hero Section */}
-      <div className="relative z-10 mt-2 md:mt-6 mb-8 md:mb-16 p-8 md:p-20 bg-white/60 backdrop-blur-xl rounded-3xl md:rounded-[3.5rem] border border-white shadow-sm shadow-blue-500/5">
+      <div className="relative z-10 mt-0 md:mt-2 mb-4 md:mb-8 p-5 md:p-10 bg-white/60 backdrop-blur-xl rounded-3xl md:rounded-[2.5rem] border border-white shadow-sm shadow-blue-500/5">
         <div className="max-w-3xl">
-          <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-10">
+          <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-4">
             <div className="px-3 md:px-4 py-1.5 rounded-full bg-white border border-blue-100 text-blue-600 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] shadow-sm">
               小智工作台
             </div>
@@ -63,13 +63,13 @@ const Home: React.FC = () => {
             </span>
           </div>
           
-          <h1 className="text-3xl md:text-7xl font-black text-gray-900 mb-6 md:mb-10 tracking-tight leading-[1.2] md:leading-[1.15]">
+          <h1 className="text-xl md:text-4xl font-black text-gray-900 mb-3 md:mb-4 tracking-tight leading-[1.2] md:leading-[1.15]">
             你好，我是<span className="text-blue-600">小智</span><br />
             今天想开启哪项 AI 辅助？
           </h1>
           
-          <p className="text-gray-500 text-base md:text-xl font-medium leading-relaxed md:leading-[2] max-w-xl">
-            欢迎回到你的私人 AI 助手空间。在这里，你可以进行面试模拟、智能对话或通过 AI 深度优化你的工作流。
+          <p className="text-gray-500 text-sm md:text-base font-medium leading-relaxed md:leading-[1.7] max-w-xl">
+            欢迎回到你的私人 AI 助手空间。在这里，你可以进行面试模拟、智能对话或通过 AI 优化工作流。
           </p>
         </div>
       </div>
