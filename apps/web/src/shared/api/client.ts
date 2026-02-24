@@ -7,6 +7,10 @@ interface RequestOptions extends RequestInit {
 }
 
 async function request<T>(endpoint: string, { data, ...customConfig }: RequestOptions = {}): Promise<T> {
+  if (!navigator.onLine) {
+    throw new Error('网络未连接');
+  }
+
   const customKey = localStorage.getItem('gemini_api_key');
   const customModel = localStorage.getItem('selected_model');
   const headers: Record<string, string> = { 
@@ -64,6 +68,12 @@ export const client = {
     request<T>(endpoint, { ...config, method: 'DELETE' }),
 
   stream: async (endpoint: string, data: any, onMessage: (text: string) => void, onError?: (err: any) => void, signal?: AbortSignal) => {
+    if (!navigator.onLine) {
+      const error = new Error('网络未连接');
+      onError?.(error);
+      throw error;
+    }
+
     const customKey = localStorage.getItem('gemini_api_key');
     const customModel = localStorage.getItem('selected_model');
     const headers: Record<string, string> = {
