@@ -12,12 +12,26 @@ export interface VersionRecord {
 
 export const CHANGELOG: VersionRecord[] = [
   {
-    version: 'v1.3.0 (Roadmap)',
+    version: 'v1.4.0 (Roadmap)',
     date: '未来规划',
     status: 'planned',
     items: [
-      { type: 'planned', content: '移动端适配优化' },
+      { type: 'planned', content: '模拟面试增加语音对话模式 (Web Speech / TTS)' },
+      { type: 'planned', content: '集成更多 AI 厂商 (Claude / DeepSeek)' },
       { type: 'planned', content: '离线缓存支持 Server-Worker' },
+    ],
+  },
+  {
+    version: 'v1.3.0',
+    date: '2026-02-12',
+    status: 'completed',
+    items: [
+      { type: 'feature', content: '新增简历专家诊断模块：支持 PDF/DOCX 自动解析与 AI 深度诊断' },
+      { type: 'feature', content: '支持简历对标 JD (职位描述) 进行精准匹配度分析' },
+      { type: 'feature', content: '实现一键简历优化：根据专家建议重构并生成 Markdown 简历' },
+      { type: 'feature', content: '支持优化后的简历预览、下载及 PDF 规范化导出' },
+      { type: 'optimization', content: '针对移动端优化 Markdown 代码块展示，解决布局溢出问题' },
+      { type: 'optimization', content: '全局 UI 打印适配优化，支持简历跨页排版打印' },
     ],
   },
   {

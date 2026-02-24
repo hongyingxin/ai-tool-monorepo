@@ -28,7 +28,7 @@ const tools = [
     Icon: FileText,
     iconColor: 'text-orange-500',
     color: 'bg-orange-50',
-    path: '#'
+    path: '/resume'
   },
   {
     id: 'code',

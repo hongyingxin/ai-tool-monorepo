@@ -10,6 +10,10 @@ import HistoryList from './modules/interview/pages/HistoryList';
 import HistoryDetail from './modules/interview/pages/HistoryDetail';
 import ChatPage from './modules/chat/ChatPage';
 import SettingsPage from './modules/settings/SettingsPage';
+import ResumeModule from './modules/resume/pages/ResumeModule';
+import ResumeSetupPage from './modules/resume/pages/ResumeSetupPage';
+import ResumeResultPage from './modules/resume/pages/ResumeResultPage';
+import ResumePreviewPage from './modules/resume/pages/ResumePreviewPage';
 
 /**
  * 全局路由配置
@@ -23,6 +27,24 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <Home />,
+      },
+      {
+        path: 'resume',
+        element: <ResumeModule />,
+        children: [
+          {
+            index: true,
+            element: <ResumeSetupPage />,
+          },
+          {
+            path: 'result',
+            element: <ResumeResultPage />,
+          },
+          {
+            path: 'preview',
+            element: <ResumePreviewPage />,
+          },
+        ],
       },
       {
         path: 'interview',

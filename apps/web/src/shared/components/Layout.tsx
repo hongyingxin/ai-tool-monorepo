@@ -8,7 +8,8 @@ import {
   Sparkles,
   ChevronRight,
   ArrowLeft,
-  Info
+  Info,
+  FileText
 } from 'lucide-react';
 import VersionDrawer from './VersionDrawer';
 
@@ -20,6 +21,7 @@ const Layout: React.FC = () => {
 
   const navItems = [
     { to: '/', icon: <LayoutDashboard size={20} />, label: '工作台' },
+    { to: '/resume', icon: <FileText size={20} />, label: '简历优化' },
     { to: '/interview', icon: <UserRound size={20} />, label: '模拟面试' },
     { to: '/chat', icon: <MessageSquareText size={20} />, label: '智能助手' },
     { to: '/settings', icon: <SettingsIcon size={20} />, label: '系统设置' },
@@ -32,6 +34,9 @@ const Layout: React.FC = () => {
     if (item) return item.label;
 
     // 处理嵌套路由标题
+    if (location.pathname === '/resume') return '简历专家诊断';
+    if (location.pathname === '/resume/result') return '诊断报告';
+    if (location.pathname === '/resume/preview') return '优化预览';
     if (location.pathname.startsWith('/interview/history/')) return '面试详情';
     if (location.pathname === '/interview/history') return '面试历史';
     if (location.pathname === '/interview/setup') return '定制面试场景';
@@ -45,7 +50,7 @@ const Layout: React.FC = () => {
   return (
     <div className="flex h-screen bg-[#F8FAFC] text-slate-900 font-sans overflow-hidden">
       {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-100">
+      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-100 no-print">
         <div className="p-8 flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100">
             <Sparkles className="text-white" size={24} fill="currentColor" />
@@ -85,7 +90,7 @@ const Layout: React.FC = () => {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-blue-500">Current Version</p>
               <Info size={12} className="text-slate-300 group-hover:text-blue-400" />
             </div>
-            <p className="text-xs font-bold text-slate-600 group-hover:text-blue-700">v1.2.0 Personal</p>
+            <p className="text-xs font-bold text-slate-600 group-hover:text-blue-700">v1.3.0 Personal</p>
           </button>
         </div>
       </aside>
@@ -93,7 +98,7 @@ const Layout: React.FC = () => {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col overflow-hidden relative">
         {/* Top Header */}
-        <header className="h-16 md:h-20 flex items-center justify-between px-4 md:px-8 bg-white/80 backdrop-blur-md border-b border-slate-100 shrink-0">
+        <header className="h-16 md:h-20 flex items-center justify-between px-4 md:px-8 bg-white/80 backdrop-blur-md border-b border-slate-100 shrink-0 no-print">
           <div className="flex items-center gap-4">
              {!isHome && (
                <button 
@@ -145,7 +150,7 @@ const Layout: React.FC = () => {
       </main>
 
       {/* Mobile Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-around px-6 z-50 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.05)]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-around px-6 z-50 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.05)] no-print">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
