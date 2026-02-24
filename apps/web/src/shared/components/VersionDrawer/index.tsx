@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, CheckCircle2, Circle, Rocket } from 'lucide-react';
-import { CHANGELOG, } from '../../constants/changelog';
+import { CHANGELOG } from '@ai-tool/shared';
 
 interface VersionDrawerProps {
   isOpen: boolean;
