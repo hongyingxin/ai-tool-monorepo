@@ -12,13 +12,22 @@ export interface VersionRecord {
 
 export const CHANGELOG: VersionRecord[] = [
   {
-    version: 'v1.4.0 (Roadmap)',
+    version: 'v1.5.0 (Roadmap)',
     date: '未来规划',
     status: 'planned',
     items: [
       { type: 'planned', content: '模拟面试增加语音对话模式 (Web Speech / TTS)' },
-      { type: 'planned', content: '离线缓存支持 Server-Worker' },
       { type: 'planned', content: '打包优化和页面性能优化'}
+    ],
+  },
+  {
+    version: 'v1.4.0',
+    date: '2026-02-24',
+    status: 'completed',
+    items: [
+      { type: 'feature', content: '新增离线缓存支持：支持离线访问，支持 PWA 安装' },
+      { type: 'optimization', content: '优化Changelog文件' },
+      { type: 'optimization', content: '调整路由显示优先级' }
     ],
   },
   {
