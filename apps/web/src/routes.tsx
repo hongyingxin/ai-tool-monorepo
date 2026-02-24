@@ -29,24 +29,6 @@ export const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: 'resume',
-        element: <ResumeModule />,
-        children: [
-          {
-            index: true,
-            element: <ResumeSetupPage />,
-          },
-          {
-            path: 'result',
-            element: <ResumeResultPage />,
-          },
-          {
-            path: 'preview',
-            element: <ResumePreviewPage />,
-          },
-        ],
-      },
-      {
         path: 'interview',
         element: <InterviewModule />,
         children: [
@@ -79,6 +61,24 @@ export const router = createBrowserRouter([
       {
         path: 'chat',
         element: <ChatPage />,
+      },
+      {
+        path: 'resume',
+        element: <ResumeModule />,
+        children: [
+          {
+            index: true,
+            element: <ResumeSetupPage />,
+          },
+          {
+            path: 'result',
+            element: <ResumeResultPage />,
+          },
+          {
+            path: 'preview',
+            element: <ResumePreviewPage />,
+          },
+        ],
       },
       {
         path: 'settings',

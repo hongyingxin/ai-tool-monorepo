@@ -21,9 +21,9 @@ const Layout: React.FC = () => {
 
   const navItems = [
     { to: '/', icon: <LayoutDashboard size={20} />, label: '工作台' },
-    { to: '/resume', icon: <FileText size={20} />, label: '简历优化' },
     { to: '/interview', icon: <UserRound size={20} />, label: '模拟面试' },
     { to: '/chat', icon: <MessageSquareText size={20} />, label: '智能助手' },
+    { to: '/resume', icon: <FileText size={20} />, label: '简历优化' },
     { to: '/settings', icon: <SettingsIcon size={20} />, label: '系统设置' },
   ];
 
