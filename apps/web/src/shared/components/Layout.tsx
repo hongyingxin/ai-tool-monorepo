@@ -90,7 +90,7 @@ const Layout: React.FC = () => {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-blue-500">Current Version</p>
               <Info size={12} className="text-slate-300 group-hover:text-blue-400" />
             </div>
-            <p className="text-xs font-bold text-slate-600 group-hover:text-blue-700">v1.3.0 Personal</p>
+            <p className="text-xs font-bold text-slate-600 group-hover:text-blue-700">v1.4.0 Personal</p>
           </button>
         </div>
       </aside>
